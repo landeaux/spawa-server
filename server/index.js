@@ -1,11 +1,17 @@
+// load our environment variables for any non-production environment
+if (process.env.NODE_ENV !== 'production') {
+  require('dotenv').config();
+}
+
 // import dependencies
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 
-const app = express(); // initialize app
+// initialize app
+const app = express();
 
-// Middleware
+// use middleware
 app.use(bodyParser.json());
 app.use(cors());
 

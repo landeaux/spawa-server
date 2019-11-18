@@ -28,7 +28,7 @@ router.delete('/:id', async (req, res) => {
 
 async function loadPostsCollection () {
   const client = await mongodb.MongoClient.connect(
-    'mongodb://spawa_admin:dbFGctbMY8VEmkHtL6l5@ds061621.mlab.com:61621/spawa_dev', { 
+    `mongodb://${process.env.DB_USER}:${process.env.DB_PASS}@ds061621.mlab.com:61621/${process.env.DB_NAME}`, { 
       useNewUrlParser: true,
       useUnifiedTopology: true
   });

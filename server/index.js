@@ -25,6 +25,7 @@ mongoose.connect(
 // bring in our models
 require('./models/User');
 require('./models/Post');
+require('./config/passport');
 
 app.use(require('./routes'));
 

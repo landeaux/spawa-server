@@ -7,7 +7,7 @@
   "private": true,
   "repository": {
     "type": "git",
-    "url": "https://github.com/landeaux/spawa.git"
+    "url": "https://github.com/landeaux/spawa-server.git"
   },
   "main": "index.js",
   "scripts": {

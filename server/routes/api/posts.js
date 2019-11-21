@@ -1,39 +1,36 @@
-const express = require('express');
-const mongodb = require('mongodb');
-
-const router = express.Router();
+const router = require('express').Router();
+const mongoose = require('mongoose');
+const Post = mongoose.model('Post');
 
 // Get Posts
 router.get('/', async (req, res) => {
-  const posts = await loadPostsCollection();
-  res.send(await posts.find({}).toArray());
-})
+  try {
+    res.send(await Post.find())
+  } catch (err) {
+    throw(err)
+  }
+});
 
 // Add Post
 router.post('/', async (req, res) => {
-  const posts = await loadPostsCollection();
-  await posts.insertOne({
-    text: req.body.text,
-    createdAt: new Date()
-  });
-  res.status(201).send();
-})
+  try {
+    var post = new Post();
+    post.text = req.body.text;
+    await post.save();
+    res.status(201).send();
+  } catch (err) {
+    throw(err)
+  }
+});
 
 // Delete Post
 router.delete('/:id', async (req, res) => {
-  const posts = await loadPostsCollection();
-  await posts.deleteOne({ _id: new mongodb.ObjectId(req.params.id) });
-  res.status(200).send();
-})
-
-async function loadPostsCollection () {
-  const client = await mongodb.MongoClient.connect(
-    `mongodb://${process.env.DB_USER}:${process.env.DB_PASS}@ds061621.mlab.com:61621/${process.env.DB_NAME}`, { 
-      useNewUrlParser: true,
-      useUnifiedTopology: true
-  });
-
-  return client.db('spawa_dev').collection('posts');
-}
+  try {
+    await Post.deleteOne({ _id: req.params.id })
+    res.status(200).send();
+  } catch (err) {
+    throw(err)
+  } 
+});
 
 module.exports = router;

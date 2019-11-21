@@ -7,6 +7,7 @@ if (process.env.NODE_ENV !== 'production') {
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
+const mongoose = require('mongoose');
 
 // initialize app
 const app = express();
@@ -15,9 +16,15 @@ const app = express();
 app.use(bodyParser.json());
 app.use(cors());
 
-const posts = require('./routes/api/posts');
+mongoose.connect(
+  `mongodb://${process.env.DB_USER}:${process.env.DB_PASS}@ds061621.mlab.com:61621/${process.env.DB_NAME}`, { 
+    useNewUrlParser: true,
+    useUnifiedTopology: true
+});
 
-app.use('/api/posts', posts);
+require('./models/Post')
+
+app.use(require('./routes'));
 
 // Handle production
 if (process.env.NODE_ENV === 'production') {

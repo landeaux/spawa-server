@@ -22,7 +22,9 @@ mongoose.connect(
     useUnifiedTopology: true
 });
 
-require('./models/Post')
+// bring in our models
+require('./models/User');
+require('./models/Post');
 
 app.use(require('./routes'));
 

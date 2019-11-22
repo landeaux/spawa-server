@@ -8,6 +8,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const mongoose = require('mongoose');
+const morgan = require('morgan');
 
 // initialize app
 const app = express();
@@ -15,6 +16,7 @@ const app = express();
 // use middleware
 app.use(bodyParser.json());
 app.use(cors());
+app.use(morgan('dev'));
 
 mongoose.connect(
   `mongodb://${process.env.DB_USER}:${process.env.DB_PASS}@ds061621.mlab.com:61621/${process.env.DB_NAME}`, { 

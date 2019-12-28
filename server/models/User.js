@@ -21,6 +21,11 @@ var UserSchema = new mongoose.Schema({
     match: [ /\S+@\S+\.\S+/, 'is invalid' ],
     index: true // optimize queries that use this field
   },
+  role: {
+    type: String,
+    default: 'founder',
+    enum: ['founder', 'reviewer', 'evaluator', 'admin']
+  },
   bio: String,
   image: String,
   hash: String,
@@ -58,6 +63,7 @@ UserSchema.methods.toAuthJSON = function () {
   return {
     username: this.username,
     email: this.email,
+    role: this.role,
     token: this.generateJWT(),
     bio: this.bio,
     image: this.image

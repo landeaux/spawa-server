@@ -1,10 +1,11 @@
-var jwt = require('express-jwt');
-var secret = require('../config').secret;
+const jwt = require('express-jwt');
+const { secret } = require('../config');
 
 // helper function to extract the JWT from the Authorization header
-function getTokenFromHeader(req){
-  if (req.headers.authorization && req.headers.authorization.split(' ')[0] === 'Token' ||
-      req.headers.authorization && req.headers.authorization.split(' ')[0] === 'Bearer') {
+function getTokenFromHeader(req) {
+  if (req.headers.authorization
+    && (req.headers.authorization.split(' ')[0] === 'Token'
+    || req.headers.authorization.split(' ')[0] === 'Bearer')) {
     return req.headers.authorization.split(' ')[1];
   }
 
@@ -12,19 +13,19 @@ function getTokenFromHeader(req){
 }
 
 // define middleware options for required and optional authentication routes
-var auth = {
+const auth = {
   required: jwt({
-    secret: secret,
+    secret,
     userProperty: 'payload', // JWT payloads will be attached to each request
-    getToken: getTokenFromHeader
+    getToken: getTokenFromHeader,
   }),
   optional: jwt({
-    secret: secret,
+    secret,
     userProperty: 'payload', // JWT payloads will be attached to each request
     credentialsRequired: false, // specifies optional authentication
-    getToken: getTokenFromHeader
-  })
+    getToken: getTokenFromHeader,
+  }),
 };
 
-// export middlewares
+// export middleware
 module.exports = auth;

@@ -1,5 +1,6 @@
 // load our environment variables for any non-production environment
 if (process.env.NODE_ENV !== 'production') {
+  // eslint-disable-next-line global-require
   require('dotenv').config();
 }
 
@@ -19,11 +20,12 @@ app.use(cors());
 app.use(morgan('dev'));
 
 mongoose.connect(
-  `mongodb://${process.env.DB_USER}:${process.env.DB_PASS}@ds061621.mlab.com:61621/${process.env.DB_NAME}`, { 
+  `mongodb://${process.env.DB_USER}:${process.env.DB_PASS}@ds061621.mlab.com:61621/${process.env.DB_NAME}`, {
     useCreateIndex: true,
     useNewUrlParser: true,
-    useUnifiedTopology: true
-});
+    useUnifiedTopology: true,
+  },
+);
 
 // bring in our models
 require('./models/User');
@@ -35,10 +37,10 @@ app.use(require('./routes'));
 // Handle production
 if (process.env.NODE_ENV === 'production') {
   // Static folder
-  app.use(express.static(__dirname + '/public/'));
+  app.use(express.static(`${__dirname}/public/`));
 
   // Handle SPA (NOTE: This MUST be below other all other routes)
-  app.get(/.*/, (req, res) => res.sendFile(__dirname + '/public/index.html'));
+  app.get(/.*/, (req, res) => res.sendFile(`${__dirname}/public/index.html`));
 }
 
 const port = process.env.PORT || 5000;

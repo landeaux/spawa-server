@@ -5,9 +5,10 @@ const auth = require('../auth');
 
 const User = mongoose.model('User');
 
+// Get all users
 router.get('/users', auth.required, (req, res, next) => {
   User.find({})
-    .then((users) => res.status(200).json({ users: users.map((user) => user.toProfileJSONFor()) }))
+    .then((users) => res.status(200).json({ users: users.map((user) => user.toUserJSONFor()) }))
     .catch(next);
 });
 

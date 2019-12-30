@@ -15,17 +15,6 @@ router.param('username', (req, res, next, username) => {
   }).catch(next);
 });
 
-router.get('/:username', auth.optional, (req, res) => {
-  if (req.payload) {
-    return User.findById(req.payload.id).then((user) => {
-      if (!user) {
-        return res.json({ profile: req.profile.toProfileJSONFor(false) });
-      }
-
-      return res.json({ profile: req.profile.toProfileJSONFor(user) });
-    });
-  }
-  return res.json({ profile: req.profile.toProfileJSONFor(false) });
-});
+router.get('/:username', auth.optional, (req, res) => res.json({ profile: req.profile.toProfileJSONFor() }));
 
 module.exports = router;

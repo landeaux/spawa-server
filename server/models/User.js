@@ -24,7 +24,7 @@ const UserSchema = new mongoose.Schema({
   role: {
     type: String,
     default: 'founder',
-    enum: ['founder', 'reviewer', 'evaluator', 'admin']
+    enum: ['founder', 'reviewer', 'evaluator', 'admin'],
   },
   bio: String,
   image: String,
@@ -68,6 +68,14 @@ UserSchema.methods.toAuthJSON = function toAuthJSON() {
     token: this.generateJWT(),
     bio: this.bio,
     image: this.image,
+  };
+};
+
+UserSchema.methods.toUserJSONFor = function toUserJSONFor() {
+  return {
+    username: this.username,
+    email: this.email,
+    role: this.role,
   };
 };
 

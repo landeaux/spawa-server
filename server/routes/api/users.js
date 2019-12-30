@@ -7,7 +7,7 @@ const User = mongoose.model('User');
 
 router.get('/users', auth.required, (req, res, next) => {
   User.find({})
-    .then((users) => res.json({ users: users.map((user) => user.toProfileJSONFor()) }))
+    .then((users) => res.status(200).json({ users: users.map((user) => user.toProfileJSONFor()) }))
     .catch(next);
 });
 

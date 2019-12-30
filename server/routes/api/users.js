@@ -5,6 +5,12 @@ const auth = require('../auth');
 
 const User = mongoose.model('User');
 
+router.get('/users', auth.required, (req, res, next) => {
+  User.find({})
+    .then((users) => res.json({ users: users.map((user) => user.toProfileJSONFor()) }))
+    .catch(next);
+});
+
 // Get user by ID
 router.get('/user', auth.required, (req, res, next) => {
   User.findById(req.payload.id).then((user) => {

@@ -18,7 +18,6 @@ router.get('/users', auth.required, userController.getUsers);
 router.put('/user', auth.required, userController.updateUser);
 
 // Delete user
-router.delete('/user/:userId', userController.deleteUser);
-
+router.delete('/user/:userId', auth.required, userController.deleteUser);
 
 module.exports = router;

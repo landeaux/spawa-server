@@ -76,3 +76,16 @@ exports.updateUser = (req, res, next) => {
     return user.save().then(() => res.json({ user: user.toAuthJSON() }));
   }).catch(next);
 };
+
+// Delete user
+exports.deleteUser = async (req, res, next) => {
+  try {
+    const { userId } = req.params;
+    const STATUS_CODE = await User.findByIdAndDelete(userId)
+      ? 204 // No Content
+      : 410; // Gone
+    res.status(STATUS_CODE).send();
+  } catch (error) {
+    next(error);
+  }
+};

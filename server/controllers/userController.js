@@ -11,7 +11,7 @@ exports.signup = (req, res, next) => {
   user.email = req.body.user.email;
   user.setPassword(req.body.user.password);
 
-  user.save().then(() => res.json({ user: user.toAuthJSON() })).catch(next);
+  user.save().then(() => res.status(201).json({ user: user.toAuthJSON() })).catch(next);
 };
 
 // Authenticate user
@@ -29,19 +29,33 @@ exports.login = (req, res, next) => {
 
     if (user) {
       user.token = user.generateJWT();
-      return res.json({ user: user.toAuthJSON() });
+      return res.status(200).json({ user: user.toAuthJSON() });
     }
     return res.status(422).json(info);
   })(req, res, next);
 };
 
-// Get user by ID
+// Get current user
 exports.getUser = (req, res, next) => {
   User.findById(req.payload.id).then((user) => {
     if (!user) { return res.sendStatus(401); }
 
-    return res.json({ user: user.toAuthJSON() });
+    return res.status(200).json({ user: user.toAuthJSON() });
   }).catch(next);
+};
+
+// Get user by ID
+exports.getUserById = async (req, res, next) => {
+  const { userId } = req.params;
+  if (!mongoose.Types.ObjectId.isValid(userId)) {
+    res.sendStatus(400);
+  } else {
+    User.findById(userId).then((user) => {
+      if (!user) { return res.sendStatus(401); }
+
+      return res.status(200).json({ user: user.toUserJSONFor() });
+    }).catch(next);
+  }
 };
 
 // Get all users
@@ -73,7 +87,7 @@ exports.updateUser = (req, res, next) => {
       user.setPassword(req.body.user.password);
     }
 
-    return user.save().then(() => res.json({ user: user.toAuthJSON() }));
+    return user.save().then(() => res.status(200).json({ user: user.toAuthJSON() }));
   }).catch(next);
 };
 
@@ -81,10 +95,14 @@ exports.updateUser = (req, res, next) => {
 exports.deleteUser = async (req, res, next) => {
   try {
     const { userId } = req.params;
-    const STATUS_CODE = await User.findByIdAndDelete(userId)
-      ? 204 // No Content
-      : 410; // Gone
-    res.status(STATUS_CODE).send();
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      res.sendStatus(400);
+    } else {
+      const STATUS_CODE = await User.findByIdAndDelete(userId)
+        ? 204 // No Content
+        : 410; // Gone
+      res.sendStatus(STATUS_CODE);
+    }
   } catch (error) {
     next(error);
   }

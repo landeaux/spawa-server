@@ -3,7 +3,7 @@ const passport = require('passport');
 
 const User = mongoose.model('User');
 
-// Create user
+// User signup
 exports.signup = async (req, res, next) => {
   try {
     const user = new User();
@@ -17,7 +17,7 @@ exports.signup = async (req, res, next) => {
   }
 };
 
-// Authenticate user
+// User login
 exports.login = (req, res, next) => {
   if (!req.body.user.email) {
     return res.status(422).json({ errors: { email: 'can\'t be blank' } });
@@ -44,7 +44,7 @@ exports.getUser = async (req, res, next) => {
     const user = await User.findById(req.payload.id);
     return user
       ? res.status(200).json({ user: user.toAuthJSON() }) // user found
-      : res.sendStatus(401); // user not found
+      : res.sendStatus(404); // user not found
   } catch (error) {
     return next(error);
   }
@@ -58,7 +58,7 @@ exports.getUserById = async (req, res, next) => {
     const user = await User.findById(userId);
     return user
       ? res.status(200).json({ user: user.toUserJSONFor() }) // user found
-      : res.sendStatus(401); // user not found
+      : res.sendStatus(404); // user not found
   } catch (error) {
     return next(error);
   }
@@ -75,9 +75,10 @@ exports.getUsers = async (req, res, next) => {
 };
 
 // Update user
-exports.updateUser = (req, res, next) => {
-  User.findById(req.payload.id).then((user) => {
-    if (!user) { return res.sendStatus(401); }
+exports.updateUser = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.payload.id);
+    if (!user) { return res.sendStatus(404); }
 
     // only update fields that were actually passed...
     if (typeof req.body.user.username !== 'undefined') {
@@ -96,8 +97,11 @@ exports.updateUser = (req, res, next) => {
       user.setPassword(req.body.user.password);
     }
 
-    return user.save().then(() => res.status(200).json({ user: user.toAuthJSON() }));
-  }).catch(next);
+    await user.save();
+    return res.status(200).json({ user: user.toAuthJSON() });
+  } catch (error) {
+    return next(error);
+  }
 };
 
 // Delete user

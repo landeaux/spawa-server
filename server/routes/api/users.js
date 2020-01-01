@@ -8,13 +8,16 @@ router.post('/signup', userController.signup);
 // User login
 router.post('/login', userController.login);
 
-// Get user by ID
+// Get current user
 router.get('/user', auth.required, userController.getUser);
+
+// Get user by ID
+router.get('/user/:userId', auth.required, userController.getUserById);
 
 // Get all users
 router.get('/users', auth.required, userController.getUsers);
 
-// Update user
+// Update current user
 router.put('/user', auth.required, userController.updateUser);
 
 // Delete user

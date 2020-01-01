@@ -39,12 +39,15 @@ exports.login = (req, res, next) => {
 };
 
 // Get current user
-exports.getUser = (req, res, next) => {
-  User.findById(req.payload.id).then((user) => {
-    if (!user) { return res.sendStatus(401); }
-
-    return res.status(200).json({ user: user.toAuthJSON() });
-  }).catch(next);
+exports.getUser = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.payload.id);
+    return user
+      ? res.status(200).json({ user: user.toAuthJSON() }) // user found
+      : res.sendStatus(401); // user not found
+  } catch (error) {
+    return next(error);
+  }
 };
 
 // Get user by ID

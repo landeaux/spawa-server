@@ -3,7 +3,7 @@ const auth = require('../auth');
 const userController = require('../../controllers/userController');
 
 // Create user
-router.post('/users', userController.signUp);
+router.post('/signup', userController.signup);
 
 // Authenticate User
 router.post('/users/login', userController.login);

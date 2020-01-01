@@ -4,7 +4,7 @@ const passport = require('passport');
 const User = mongoose.model('User');
 
 // Create user
-exports.signUp = (req, res, next) => {
+exports.signup = (req, res, next) => {
   const user = new User();
 
   user.username = req.body.user.username;

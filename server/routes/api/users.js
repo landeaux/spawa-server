@@ -15,7 +15,7 @@ router.get('/user', auth.required, userController.getUser);
 router.get('/user/:userId', auth.required, userController.getUserById);
 
 // Get all users
-router.get('/users', auth.required, userController.getUsers);
+router.get('/users', auth.required, userController.grantAccess('readAny', 'profile'), userController.getUsers);
 
 // Update current user
 router.put('/user', auth.required, userController.updateUser);

@@ -55,6 +55,7 @@ UserSchema.methods.generateJWT = function generateJWT() {
     // eslint-disable-next-line no-underscore-dangle
     id: this._id,
     username: this.username,
+    role: this.role,
     exp: parseInt(exp.getTime() / 1000, 10),
   }, secret);
 };

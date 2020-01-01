@@ -4,12 +4,12 @@ const ac = new AccessControl();
 
 exports.roles = (function roles() {
   ac.grant('founder')
-    .readOwn('profile')
-    .updateOwn('profile');
+    .readOwn('user')
+    .updateOwn('user');
 
   ac.grant('reviewer')
     .extend('founder')
-    .readAny('profile');
+    .readAny('user');
 
   ac.grant('evaluator')
     .extend('reviewer');
@@ -18,8 +18,9 @@ exports.roles = (function roles() {
     .extend('founder')
     .extend('reviewer')
     .extend('evaluator')
-    .updateAny('profile')
-    .deleteAny('profile');
+    .createAny('user')
+    .updateAny('user')
+    .deleteAny('user');
 
   return ac;
 }());

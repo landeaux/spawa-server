@@ -52,15 +52,15 @@ exports.getUser = async (req, res, next) => {
 
 // Get user by ID
 exports.getUserById = async (req, res, next) => {
-  const { userId } = req.params;
-  if (!mongoose.Types.ObjectId.isValid(userId)) {
-    res.sendStatus(400);
-  } else {
-    User.findById(userId).then((user) => {
-      if (!user) { return res.sendStatus(401); }
-
-      return res.status(200).json({ user: user.toUserJSONFor() });
-    }).catch(next);
+  try {
+    const { userId } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(userId)) return res.sendStatus(400);
+    const user = await User.findById(userId);
+    return user
+      ? res.status(200).json({ user: user.toUserJSONFor() }) // user found
+      : res.sendStatus(401); // user not found
+  } catch (error) {
+    return next(error);
   }
 };
 

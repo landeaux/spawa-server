@@ -4,14 +4,17 @@ const passport = require('passport');
 const User = mongoose.model('User');
 
 // Create user
-exports.signup = (req, res, next) => {
-  const user = new User();
-
-  user.username = req.body.user.username;
-  user.email = req.body.user.email;
-  user.setPassword(req.body.user.password);
-
-  user.save().then(() => res.status(201).json({ user: user.toAuthJSON() })).catch(next);
+exports.signup = async (req, res, next) => {
+  try {
+    const user = new User();
+    user.username = req.body.user.username;
+    user.email = req.body.user.email;
+    user.setPassword(req.body.user.password);
+    await user.save();
+    res.status(201).json({ user: user.toAuthJSON() });
+  } catch (error) {
+    next(error);
+  }
 };
 
 // Authenticate user

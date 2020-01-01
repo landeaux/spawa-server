@@ -65,10 +65,13 @@ exports.getUserById = async (req, res, next) => {
 };
 
 // Get all users
-exports.getUsers = (req, res, next) => {
-  User.find({})
-    .then((users) => res.status(200).json({ users: users.map((user) => user.toUserJSONFor()) }))
-    .catch(next);
+exports.getUsers = async (req, res, next) => {
+  try {
+    const users = await User.find({});
+    res.status(200).json({ users: users.map((user) => user.toUserJSONFor()) });
+  } catch (error) {
+    next(error);
+  }
 };
 
 // Update user

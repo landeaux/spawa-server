@@ -1,26 +1,35 @@
 const router = require('express').Router();
 const auth = require('../auth');
-const userController = require('../../controllers/userController');
+const {
+  grantAccess,
+  signup,
+  login,
+  getUser,
+  getUserById,
+  getUsers,
+  updateUser,
+  deleteUser,
+} = require('../../controllers/userController');
 
 // User signup
-router.post('/signup', userController.signup);
+router.post('/signup', signup);
 
 // User login
-router.post('/login', userController.login);
+router.post('/login', login);
 
 // Get current user
-router.get('/user', auth.required, userController.getUser);
+router.get('/user', auth.required, getUser);
 
 // Get user by ID
-router.get('/user/:userId', auth.required, userController.getUserById);
+router.get('/user/:userId', auth.required, grantAccess('readAny', 'user'), getUserById);
 
 // Get all users
-router.get('/users', auth.required, userController.grantAccess('readAny', 'profile'), userController.getUsers);
+router.get('/users', auth.required, grantAccess('readAny', 'user'), getUsers);
 
 // Update current user
-router.put('/user', auth.required, userController.updateUser);
+router.put('/user', auth.required, updateUser);
 
 // Delete user
-router.delete('/user/:userId', auth.required, userController.deleteUser);
+router.delete('/user/:userId', auth.required, grantAccess('deleteAny', 'user'), deleteUser);
 
 module.exports = router;

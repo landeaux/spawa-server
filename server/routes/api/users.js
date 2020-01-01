@@ -2,11 +2,11 @@ const router = require('express').Router();
 const auth = require('../auth');
 const userController = require('../../controllers/userController');
 
-// Create user
+// User signup
 router.post('/signup', userController.signup);
 
-// Authenticate User
-router.post('/users/login', userController.login);
+// User login
+router.post('/login', userController.login);
 
 // Get user by ID
 router.get('/user', auth.required, userController.getUser);

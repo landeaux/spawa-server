@@ -83,6 +83,7 @@ UserSchema.methods.toUserJSONFor = function toUserJSONFor() {
 UserSchema.methods.toProfileJSONFor = function toProfileJSONFor() {
   return {
     username: this.username,
+    role: this.role,
     bio: this.bio,
     image: this.image || 'https://static.productionready.io/images/smiley-cyrus.jpg',
   };

@@ -68,9 +68,9 @@ exports.getUser = async (req, res, next) => {
 // Get user by ID
 exports.getUserById = async (req, res, next) => {
   try {
-    const { userId } = req.params;
-    if (!mongoose.Types.ObjectId.isValid(userId)) return res.sendStatus(400);
-    const user = await User.findById(userId);
+    const { id } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(id)) return res.sendStatus(400);
+    const user = await User.findById(id);
     return user
       ? res.status(200).json({ user: user.toUserJSONFor() }) // user found
       : res.sendStatus(404); // user not found
@@ -89,10 +89,12 @@ exports.getUsers = async (req, res, next) => {
   }
 };
 
-// Update user
+// Update current user
 exports.updateUser = async (req, res, next) => {
   try {
-    const user = await User.findById(req.payload.id);
+    const id = req.params.id || req.payload.id;
+    if (!mongoose.Types.ObjectId.isValid(id)) return res.sendStatus(400);
+    const user = await User.findById(id);
     if (!user) { return res.sendStatus(404); }
 
     // only update fields that were actually passed...
@@ -122,11 +124,11 @@ exports.updateUser = async (req, res, next) => {
 // Delete user
 exports.deleteUser = async (req, res, next) => {
   try {
-    const { userId } = req.params;
-    if (!mongoose.Types.ObjectId.isValid(userId)) {
+    const { id } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(id)) {
       res.sendStatus(400);
     } else {
-      const STATUS_CODE = await User.findByIdAndDelete(userId)
+      const STATUS_CODE = await User.findByIdAndDelete(id)
         ? 204 // No Content
         : 410; // Gone
       res.sendStatus(STATUS_CODE);

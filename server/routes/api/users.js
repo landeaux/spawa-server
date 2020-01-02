@@ -4,10 +4,12 @@ const {
   grantAccess,
   signup,
   login,
+  createUser,
   getUser,
   getUserById,
   getUsers,
   updateUser,
+  updateUserById,
   deleteUser,
 } = require('../../controllers/userController');
 
@@ -16,6 +18,9 @@ router.post('/signup', signup);
 
 // User login
 router.post('/login', login);
+
+// Create user
+router.post('/user', auth.required, grantAccess('createAny', 'user'), createUser);
 
 // Get current user
 router.get('/user', auth.required, getUser);
@@ -30,7 +35,7 @@ router.get('/users', auth.required, grantAccess('readAny', 'user'), getUsers);
 router.put('/user', auth.required, updateUser);
 
 // Update user by ID
-router.put('/user/:id', auth.required, grantAccess('updateAny', 'user'), updateUser);
+router.put('/user/:id', auth.required, grantAccess('updateAny', 'user'), updateUserById);
 
 // Delete user
 router.delete('/user/:id', auth.required, grantAccess('deleteAny', 'user'), deleteUser);

@@ -21,7 +21,7 @@ router.post('/login', login);
 router.get('/user', auth.required, getUser);
 
 // Get user by ID
-router.get('/user/:userId', auth.required, grantAccess('readAny', 'user'), getUserById);
+router.get('/user/:id', auth.required, grantAccess('readAny', 'user'), getUserById);
 
 // Get all users
 router.get('/users', auth.required, grantAccess('readAny', 'user'), getUsers);
@@ -29,7 +29,10 @@ router.get('/users', auth.required, grantAccess('readAny', 'user'), getUsers);
 // Update current user
 router.put('/user', auth.required, updateUser);
 
+// Update user by ID
+router.put('/user/:id', auth.required, grantAccess('updateAny', 'user'), updateUser);
+
 // Delete user
-router.delete('/user/:userId', auth.required, grantAccess('deleteAny', 'user'), deleteUser);
+router.delete('/user/:id', auth.required, grantAccess('deleteAny', 'user'), deleteUser);
 
 module.exports = router;

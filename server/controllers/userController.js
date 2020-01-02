@@ -53,10 +53,26 @@ exports.login = (req, res, next) => {
   })(req, res, next);
 };
 
+// Create user
+exports.createUser = async (req, res, next) => {
+  try {
+    const user = new User();
+    user.username = req.body.user.username;
+    user.email = req.body.user.email;
+    user.setPassword(req.body.user.password);
+    user.role = req.user.role;
+    await user.save();
+    res.status(201).json({ user: user.toUserJSONFor() });
+  } catch (error) {
+    next(error);
+  }
+};
+
 // Get current user
 exports.getUser = async (req, res, next) => {
   try {
-    const user = await User.findById(req.payload.id);
+    const { id } = req.payload;
+    const user = await User.findById(id);
     return user
       ? res.status(200).json({ user: user.toAuthJSON() }) // user found
       : res.sendStatus(404); // user not found
@@ -92,7 +108,32 @@ exports.getUsers = async (req, res, next) => {
 // Update current user
 exports.updateUser = async (req, res, next) => {
   try {
-    const id = req.params.id || req.payload.id;
+    const { id } = req.payload;
+    const user = await User.findById(id);
+    if (!user) { return res.sendStatus(404); }
+
+    // only update fields that were actually passed...
+    if (typeof req.body.user.username !== 'undefined') {
+      user.username = req.body.user.username;
+    }
+    if (typeof req.body.user.email !== 'undefined') {
+      user.email = req.body.user.email;
+    }
+    if (typeof req.body.user.password !== 'undefined') {
+      user.setPassword(req.body.user.password);
+    }
+
+    await user.save();
+    return res.status(200).json({ user: user.toAuthJSON() });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+// Update user by id
+exports.updateUserById = async (req, res, next) => {
+  try {
+    const { id } = req.params;
     if (!mongoose.Types.ObjectId.isValid(id)) return res.sendStatus(400);
     const user = await User.findById(id);
     if (!user) { return res.sendStatus(404); }
@@ -104,18 +145,15 @@ exports.updateUser = async (req, res, next) => {
     if (typeof req.body.user.email !== 'undefined') {
       user.email = req.body.user.email;
     }
-    if (typeof req.body.user.bio !== 'undefined') {
-      user.bio = req.body.user.bio;
-    }
-    if (typeof req.body.user.image !== 'undefined') {
-      user.image = req.body.user.image;
-    }
     if (typeof req.body.user.password !== 'undefined') {
       user.setPassword(req.body.user.password);
     }
+    if (typeof req.body.user.role !== 'undefined') {
+      user.role = req.body.user.role;
+    }
 
     await user.save();
-    return res.status(200).json({ user: user.toAuthJSON() });
+    return res.status(200).json({ user: user.toUserJSONFor() });
   } catch (error) {
     return next(error);
   }

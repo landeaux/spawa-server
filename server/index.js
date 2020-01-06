@@ -20,7 +20,7 @@ app.use(cors());
 app.use(morgan('dev'));
 
 mongoose.connect(
-  `mongodb://${process.env.DB_USER}:${process.env.DB_PASS}@ds061621.mlab.com:61621/${process.env.DB_NAME}`, {
+  `mongodb://${process.env.DB_USER}:${process.env.DB_PASS}@${process.env.DB_HOST}.mlab.com:${process.env.DB_PORT}/${process.env.DB_NAME}`, {
     useCreateIndex: true,
     useNewUrlParser: true,
     useUnifiedTopology: true,

@@ -19,4 +19,5 @@ module.exports = {
     'no-debugger': process.env.NODE_ENV === 'production' ? 'error' : 'off',
     'no-param-reassign': ['error', {'props': false}]
   },
+  ignorePatterns: ['node_modules/', 'server/public']
 };

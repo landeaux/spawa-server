@@ -13,7 +13,18 @@
   "scripts": {
     "start": "node server/index.js",
     "dev": "nodemon server/index.js",
-    "lint": "eslint --ext .js server"
+    "lint": "eslint .",
+    "lint:fix": "npm run lint -- --fix"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  },
+  "lint-staged": {
+    "*.js": [
+      "npm run lint:fix", "git add"
+    ]
   },
   "dependencies": {
     "body-parser": "^1.19.0",
@@ -33,6 +44,8 @@
     "eslint": "^6.8.0",
     "eslint-config-airbnb-base": "^14.0.0",
     "eslint-plugin-import": "^2.19.1",
+    "husky": "^4.0.1",
+    "lint-staged": "^9.5.0",
     "nodemon": "^1.19.4"
   }
 }

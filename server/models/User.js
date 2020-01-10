@@ -21,6 +21,11 @@ const UserSchema = new mongoose.Schema({
     match: [/\S+@\S+\.\S+/, 'is invalid'],
     index: true, // optimize queries that use this field
   },
+  role: {
+    type: String,
+    default: 'founder',
+    enum: ['founder', 'reviewer', 'evaluator', 'admin'],
+  },
   bio: String,
   image: String,
   hash: String,
@@ -50,6 +55,7 @@ UserSchema.methods.generateJWT = function generateJWT() {
     // eslint-disable-next-line no-underscore-dangle
     id: this._id,
     username: this.username,
+    role: this.role,
     exp: parseInt(exp.getTime() / 1000, 10),
   }, secret);
 };
@@ -59,15 +65,25 @@ UserSchema.methods.toAuthJSON = function toAuthJSON() {
   return {
     username: this.username,
     email: this.email,
+    role: this.role,
     token: this.generateJWT(),
     bio: this.bio,
     image: this.image,
   };
 };
 
+UserSchema.methods.toUserJSONFor = function toUserJSONFor() {
+  return {
+    username: this.username,
+    email: this.email,
+    role: this.role,
+  };
+};
+
 UserSchema.methods.toProfileJSONFor = function toProfileJSONFor() {
   return {
     username: this.username,
+    role: this.role,
     bio: this.bio,
     image: this.image || 'https://static.productionready.io/images/smiley-cyrus.jpg',
   };

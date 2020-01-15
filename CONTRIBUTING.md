@@ -23,11 +23,12 @@ repo. The workflow is as follows:
     closed issues. These need to be removed as new work should only be carried
     in branches for open issues.
     
-2.  Create a new branch for the issue:
+2.  Create a new branch for the issue and push it to the remote repo:
     
     ```shell script
     git checkout dev
-    git checkout -b <issue_number>-<short-description> 
+    git checkout -b <issue_number>-<short-description>
+    git push origin <issue_number>-<short-description>
     ```
     
     Names for new branches should follow the format

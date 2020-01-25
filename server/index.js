@@ -20,7 +20,7 @@ app.use(cors());
 app.use(morgan('dev'));
 
 mongoose.connect(
-  `mongodb://${process.env.DB_USER}:${process.env.DB_PASS}@ds061621.mlab.com:61621/${process.env.DB_NAME}`, {
+  `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@${process.env.DB_HOST}.mongodb.net/test?retryWrites=true&w=majority`, {
     useCreateIndex: true,
     useNewUrlParser: true,
     useUnifiedTopology: true,
@@ -29,7 +29,7 @@ mongoose.connect(
 
 // bring in our models
 require('./models/User');
-require('./models/Post');
+
 require('./config/passport');
 
 app.use(require('./routes'));

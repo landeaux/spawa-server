@@ -45,7 +45,7 @@ exports.createUser = async (req, res, next) => {
     user.username = req.body.user.username;
     user.email = req.body.user.email;
     user.setPassword(req.body.user.password);
-    user.role = req.user.role;
+    user.role = req.body.user.role;
     await user.save();
     res.status(201).json({ user: user.toUserJSONFor() });
   } catch (error) {

@@ -107,6 +107,12 @@ exports.updateUser = async (req, res, next) => {
     if (typeof req.body.user.password !== 'undefined') {
       user.setPassword(req.body.user.password);
     }
+    if (typeof req.body.user.bio !== 'undefined') {
+      user.bio = req.body.user.bio;
+    }
+    if (typeof req.body.user.image !== 'undefined') {
+      user.image = req.body.user.image;
+    }
 
     await user.save();
     return res.status(200).json({ user: user.toAuthJSON() });
@@ -135,6 +141,12 @@ exports.updateUserById = async (req, res, next) => {
     }
     if (typeof req.body.user.role !== 'undefined') {
       user.role = req.body.user.role;
+    }
+    if (typeof req.body.user.bio !== 'undefined') {
+      user.bio = req.body.user.bio;
+    }
+    if (typeof req.body.user.image !== 'undefined') {
+      user.image = req.body.user.image;
     }
 
     await user.save();

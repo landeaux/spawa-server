@@ -64,6 +64,7 @@ UserSchema.methods.toAuthJSON = function toAuthJSON() {
   return {
     bio: this.bio,
     email: this.email,
+    id: this._id,
     image: this.image,
     role: this.role,
     token: this.generateJWT(),
@@ -74,6 +75,7 @@ UserSchema.methods.toAuthJSON = function toAuthJSON() {
 UserSchema.methods.toUserJSONFor = function toUserJSONFor() {
   return {
     email: this.email,
+    id: this._id,
     role: this.role,
     username: this.username,
   };
@@ -82,6 +84,7 @@ UserSchema.methods.toUserJSONFor = function toUserJSONFor() {
 UserSchema.methods.toProfileJSONFor = function toProfileJSONFor() {
   return {
     bio: this.bio,
+    id: this._id,
     image: this.image || 'https://static.productionready.io/images/smiley-cyrus.jpg',
     role: this.role,
     username: this.username,

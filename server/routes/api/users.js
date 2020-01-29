@@ -1,7 +1,7 @@
 const router = require('express').Router();
 const auth = require('../auth');
+const { grantAccess } = require('../../controllers/accessController');
 const {
-  grantAccess,
   signup,
   login,
   createUser,

@@ -30,6 +30,10 @@ const UserSchema = new mongoose.Schema({
   image: String,
   hash: String,
   salt: String,
+  events: {
+    type: [Object],
+    default: [],
+  },
 }, { timestamps: true }); // this option creates createdAt and updatedAt fields
 
 // validate uniqueness of fields with "unique: true" option

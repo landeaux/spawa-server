@@ -26,6 +26,10 @@ const UserSchema = new mongoose.Schema({
     default: 'founder',
     enum: ['founder', 'reviewer', 'evaluator', 'admin'],
   },
+  active: {
+    type: Boolean,
+    default: true,
+  },
   bio: String,
   image: String,
   hash: String,

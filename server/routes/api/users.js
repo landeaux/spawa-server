@@ -1,75 +1,43 @@
-const mongoose = require('mongoose');
 const router = require('express').Router();
-const passport = require('passport');
 const auth = require('../auth');
+const { grantAccess } = require('../../controllers/accessController');
+const {
+  signup,
+  login,
+  createUser,
+  getUser,
+  getUserById,
+  getUsers,
+  updateUser,
+  updateUserById,
+  deleteUser,
+} = require('../../controllers/userController');
 
-const User = mongoose.model('User');
+// User signup
+router.post('/signup', signup);
 
-// Get user by ID
-router.get('/user', auth.required, (req, res, next) => {
-  User.findById(req.payload.id).then((user) => {
-    if (!user) { return res.sendStatus(401); }
-
-    return res.json({ user: user.toAuthJSON() });
-  }).catch(next);
-});
-
-// Update user
-router.put('/user', auth.required, (req, res, next) => {
-  User.findById(req.payload.id).then((user) => {
-    if (!user) { return res.sendStatus(401); }
-
-    // only update fields that were actually passed...
-    if (typeof req.body.user.username !== 'undefined') {
-      user.username = req.body.user.username;
-    }
-    if (typeof req.body.user.email !== 'undefined') {
-      user.email = req.body.user.email;
-    }
-    if (typeof req.body.user.bio !== 'undefined') {
-      user.bio = req.body.user.bio;
-    }
-    if (typeof req.body.user.image !== 'undefined') {
-      user.image = req.body.user.image;
-    }
-    if (typeof req.body.user.password !== 'undefined') {
-      user.setPassword(req.body.user.password);
-    }
-
-    return user.save().then(() => res.json({ user: user.toAuthJSON() }));
-  }).catch(next);
-});
-
-// Login
-router.post('/users/login', (req, res, next) => {
-  if (!req.body.user.email) {
-    return res.status(422).json({ errors: { email: 'can\'t be blank' } });
-  }
-
-  if (!req.body.user.password) {
-    return res.status(422).json({ errors: { password: 'can\'t be blank' } });
-  }
-
-  return passport.authenticate('local', { session: false }, (err, user, info) => {
-    if (err) { return next(err); }
-
-    if (user) {
-      user.token = user.generateJWT();
-      return res.json({ user: user.toAuthJSON() });
-    }
-    return res.status(422).json(info);
-  })(req, res, next);
-});
+// User login
+router.post('/login', login);
 
 // Create user
-router.post('/users', (req, res, next) => {
-  const user = new User();
+router.post('/user', auth.required, grantAccess('createAny', 'user'), createUser);
 
-  user.username = req.body.user.username;
-  user.email = req.body.user.email;
-  user.setPassword(req.body.user.password);
+// Get current user
+router.get('/user', auth.required, getUser);
 
-  user.save().then(() => res.json({ user: user.toAuthJSON() })).catch(next);
-});
+// Get user by ID
+router.get('/user/:id', auth.required, grantAccess('readAny', 'user'), getUserById);
+
+// Get all users
+router.get('/users', auth.required, grantAccess('readAny', 'user'), getUsers);
+
+// Update current user
+router.put('/user', auth.required, updateUser);
+
+// Update user by ID
+router.put('/user/:id', auth.required, grantAccess('updateAny', 'user'), updateUserById);
+
+// Delete user
+router.delete('/user/:id', auth.required, grantAccess('deleteAny', 'user'), deleteUser);
 
 module.exports = router;

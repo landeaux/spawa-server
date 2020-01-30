@@ -1,20 +1,17 @@
 const router = require('express').Router();
-const mongoose = require('mongoose');
 const auth = require('../auth');
-
-const User = mongoose.model('User');
+const { grantAccess } = require('../../controllers/accessController');
+const {
+  preloadUser,
+  getProfile,
+  getProfileByUsername,
+} = require('../../controllers/profileController');
 
 // Preload user profile on routes with ':username'
-router.param('username', (req, res, next, username) => {
-  User.findOne({ username }).then((user) => {
-    if (!user) { return res.sendStatus(404); }
+router.param('username', preloadUser);
 
-    req.profile = user;
+router.get('/', auth.required, grantAccess('readOwn', 'profile'), getProfile);
 
-    return next();
-  }).catch(next);
-});
-
-router.get('/:username', auth.optional, (req, res) => res.json({ profile: req.profile.toProfileJSONFor() }));
+router.get('/:username', auth.required, grantAccess('readAny', 'profile'), getProfileByUsername);
 
 module.exports = router;

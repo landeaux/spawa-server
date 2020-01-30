@@ -21,6 +21,11 @@ const UserSchema = new mongoose.Schema({
     match: [/\S+@\S+\.\S+/, 'is invalid'],
     index: true, // optimize queries that use this field
   },
+  role: {
+    type: String,
+    default: 'founder',
+    enum: ['founder', 'reviewer', 'evaluator', 'admin'],
+  },
   bio: String,
   image: String,
   hash: String,
@@ -47,29 +52,42 @@ UserSchema.methods.generateJWT = function generateJWT() {
   exp.setDate(today.getDate() + 60); // set expiration for 60 days in the future
 
   return jwt.sign({
-    // eslint-disable-next-line no-underscore-dangle
-    id: this._id,
-    username: this.username,
     exp: parseInt(exp.getTime() / 1000, 10),
+    id: this._id,
+    role: this.role,
+    username: this.username,
   }, secret);
 };
 
 // get JSON representation of user to pass to front-end during authentication
 UserSchema.methods.toAuthJSON = function toAuthJSON() {
   return {
-    username: this.username,
-    email: this.email,
-    token: this.generateJWT(),
     bio: this.bio,
+    email: this.email,
+    id: this._id,
     image: this.image,
+    role: this.role,
+    token: this.generateJWT(),
+    username: this.username,
+  };
+};
+
+UserSchema.methods.toUserJSONFor = function toUserJSONFor() {
+  return {
+    email: this.email,
+    id: this._id,
+    role: this.role,
+    username: this.username,
   };
 };
 
 UserSchema.methods.toProfileJSONFor = function toProfileJSONFor() {
   return {
-    username: this.username,
     bio: this.bio,
+    id: this._id,
     image: this.image || 'https://static.productionready.io/images/smiley-cyrus.jpg',
+    role: this.role,
+    username: this.username,
   };
 };
 

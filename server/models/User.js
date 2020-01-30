@@ -4,6 +4,7 @@ const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 const { secret } = require('../config');
 
+// #todo Need add a prop for linking a user to Events
 const UserSchema = new mongoose.Schema({
   username: {
     type: String,
@@ -18,7 +19,7 @@ const UserSchema = new mongoose.Schema({
     lowercase: true,
     unique: true,
     required: [true, 'can\'t be blank'],
-    match: [/\S+@\S+\.\S+/, 'is invalid'],
+    match: [/^[a-z0-9]+[-_+.]{0,1}[a-z0-9]+@[a-z0-9]+[-.]{0,1}[a-z0-9]+.[a-z]+$/, 'is invalid'],
     index: true, // optimize queries that use this field
   },
   role: {
@@ -30,10 +31,6 @@ const UserSchema = new mongoose.Schema({
   image: String,
   hash: String,
   salt: String,
-  events: {
-    type: [Object],
-    default: [],
-  },
 }, { timestamps: true }); // this option creates createdAt and updatedAt fields
 
 // validate uniqueness of fields with "unique: true" option

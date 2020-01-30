@@ -87,7 +87,7 @@ exports.getUserById = async (req, res, next) => {
     const { id } = req.params;
     if (!mongoose.Types.ObjectId.isValid(id)) return res.sendStatus(400);
     const user = await User.findById(id);
-    user.avaiable = req.body.user.avaiable;
+    user.active = req.body.user.active;
     return user
       ? res.status(200).json({ user: user.toUserJSONFor() }) // user found
       : res.sendStatus(404); // user not found

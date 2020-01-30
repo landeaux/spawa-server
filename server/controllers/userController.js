@@ -167,6 +167,9 @@ exports.updateUserById = async (req, res, next) => {
     if (typeof req.body.user.active !== 'undefined') {
       user.active = req.body.user.active;
     }
+    if (typeof req.body.user.active !== 'undefined') {
+      user.active = req.body.user.active;
+    }
 
     await user.save();
     return res.status(200).json({ user: user.toUserJSONFor() });

@@ -1,22 +1,7 @@
 const mongoose = require('mongoose');
 const passport = require('passport');
-const { roles } = require('../roles');
 
 const User = mongoose.model('User');
-
-exports.grantAccess = (action, resource) => async (req, res, next) => {
-  try {
-    const permission = roles.can(req.payload.role)[action](resource);
-    if (!permission.granted) {
-      return res.status(401).json({
-        error: 'You don\'t have enough permission to perform this action',
-      });
-    }
-    return next();
-  } catch (error) {
-    return next(error);
-  }
-};
 
 // User signup
 exports.signup = async (req, res, next) => {
@@ -60,7 +45,7 @@ exports.createUser = async (req, res, next) => {
     user.username = req.body.user.username;
     user.email = req.body.user.email;
     user.setPassword(req.body.user.password);
-    user.role = req.user.role;
+    user.role = req.body.user.role;
     await user.save();
     res.status(201).json({ user: user.toUserJSONFor() });
   } catch (error) {
@@ -123,6 +108,12 @@ exports.updateUser = async (req, res, next) => {
     if (typeof req.body.user.password !== 'undefined') {
       user.setPassword(req.body.user.password);
     }
+    if (typeof req.body.user.bio !== 'undefined') {
+      user.bio = req.body.user.bio;
+    }
+    if (typeof req.body.user.image !== 'undefined') {
+      user.image = req.body.user.image;
+    }
 
     await user.save();
     return res.status(200).json({ user: user.toAuthJSON() });
@@ -151,6 +142,12 @@ exports.updateUserById = async (req, res, next) => {
     }
     if (typeof req.body.user.role !== 'undefined') {
       user.role = req.body.user.role;
+    }
+    if (typeof req.body.user.bio !== 'undefined') {
+      user.bio = req.body.user.bio;
+    }
+    if (typeof req.body.user.image !== 'undefined') {
+      user.image = req.body.user.image;
     }
 
     await user.save();

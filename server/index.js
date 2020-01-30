@@ -29,6 +29,7 @@ mongoose.connect(
 
 // bring in our models
 require('./models/User');
+require('./models/Event');
 
 require('./config/passport');
 

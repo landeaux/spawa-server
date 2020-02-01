@@ -2,8 +2,8 @@
 name: Generic Issue Template
 about: This is a generic template for issues
 title: ''
-labels: ''
-assignees: ''
+labels: enhancement
+assignees: CodyRyan25
 
 ---
 

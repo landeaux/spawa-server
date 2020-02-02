@@ -11,6 +11,7 @@ assignees: CodyRyan25
 Description text goes here...
 
 ## Dependencies
+The following dependencies must be resolved before work on this issue can begin:
 - [ ] Dependency 1
 - [ ] Dependency 2
 - [ ] Dependency 3

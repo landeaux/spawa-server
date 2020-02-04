@@ -30,6 +30,11 @@ const UserSchema = new mongoose.Schema({
     type: Boolean,
     default: true,
   },
+  state: {
+    type: String,
+    default: 'submit_eapp',
+    enum: ['submit_eapp', 'select_pitch_date', 'watch_pitch_video', 'take_pitch_quiz', 'upload_pitch_deck', 'pitch_deck_review', 'waitlist_offer', 'waitlist', 'pitch_camp', 'pitch_cancelled'],
+  },
   bio: String,
   image: String,
   hash: String,
@@ -73,6 +78,7 @@ UserSchema.methods.toAuthJSON = function toAuthJSON() {
     role: this.role,
     token: this.generateJWT(),
     username: this.username,
+    state: this.state,
   };
 };
 
@@ -82,6 +88,7 @@ UserSchema.methods.toUserJSONFor = function toUserJSONFor() {
     id: this._id,
     role: this.role,
     username: this.username,
+    state: this.state,
   };
 };
 

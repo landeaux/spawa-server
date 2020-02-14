@@ -34,8 +34,8 @@ require('./config/passport');
 
 app.use(require('./routes'));
 
-// Handle production
-if (process.env.NODE_ENV === 'production') {
+// Handle production/staging
+if (process.env.NODE_ENV === 'production' || process.env.NODE_ENV === 'staging') {
   // Static folder
   app.use(express.static(`${__dirname}/public/`));
 

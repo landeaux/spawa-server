@@ -39,16 +39,14 @@ const UserSchema = new mongoose.Schema({
     type: String,
     default: 'submit_eapp',
     enum: [
-      'submit_eapp',
-      'select_pitch_date',
+      'submit_eapp', // initial state
       'watch_pitch_video',
       'take_pitch_quiz',
-      'upload_pitch_deck',
+      'submit_pitch_deck',
       'pitch_deck_review',
-      'waitlist_offer',
-      'waitlist',
-      'pitch_camp',
-      'pitch_cancelled',
+      'book_pitch_date',
+      'pitch_accepted', // final state
+      'pitch_cancelled', // final state
     ],
   },
   bio: String,

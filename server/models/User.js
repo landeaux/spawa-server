@@ -28,7 +28,8 @@ const UserSchema = new mongoose.Schema({
       'founder',
       'reviewer',
       'evaluator',
-      'admin'],
+      'admin',
+    ],
   },
   active: {
     type: Boolean,

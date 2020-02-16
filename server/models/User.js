@@ -49,6 +49,11 @@ const UserSchema = new mongoose.Schema({
       'pitch_cancelled', // final state
     ],
   },
+  reviews: [{
+    type: mongoose.Schema.Types.ObjectID,
+    ref: 'Review',
+    default: [],
+  }],
   bio: String,
   image: String,
   hash: String,

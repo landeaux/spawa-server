@@ -30,6 +30,7 @@ mongoose.connect(
 // bring in our models
 require('./models/User');
 require('./models/PitchDeck');
+require('./models/Review');
 
 require('./config/passport');
 

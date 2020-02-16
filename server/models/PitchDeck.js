@@ -8,6 +8,10 @@ const PitchDeckSchema = new mongoose.Schema({
   rejectionCount: {
     type: Number,
     default: 0,
+    validate: {
+      validator: (value) => Number.isInteger(value) && value >= 0,
+      message: (props) => `${props.value} is not a valid rejection count!`,
+    },
   },
   accepted: {
     type: Boolean,

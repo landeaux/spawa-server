@@ -17,7 +17,7 @@ const PitchDeckSchema = new mongoose.Schema({
       default: false,
     },
     reviews: [{
-      type: mongoose.Schema.Types.ObjectID,
+      type: mongoose.Schema.Types.ObjectId,
       ref: 'Review',
       default: [],
     }],

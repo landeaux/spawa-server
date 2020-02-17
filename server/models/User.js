@@ -50,7 +50,7 @@ const UserSchema = new mongoose.Schema({
     ],
   },
   reviews: [{
-    type: mongoose.Schema.Types.ObjectID,
+    type: mongoose.Schema.Types.ObjectId,
     ref: 'Review',
     default: [],
   }],

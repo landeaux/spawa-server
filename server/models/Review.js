@@ -4,12 +4,12 @@ const ReviewSchema = new mongoose.Schema({
   owner: {
     ref: 'User',
     required: true,
-    type: mongoose.Schema.Types.ObjectID,
+    type: mongoose.Schema.Types.ObjectId,
   },
   pitchDeck: {
     ref: 'PitchDeck',
     required: true,
-    type: mongoose.Schema.Types.ObjectID,
+    type: mongoose.Schema.Types.ObjectId,
   },
   feedback: {
     required: true,

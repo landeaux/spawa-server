@@ -34,8 +34,8 @@ exports.signup = async (req, res, next) => {
 
 // User login
 exports.login = (req, res, next) => {
-  if (!req.body.user.email) {
-    return res.status(422).json({ errors: { email: 'can\'t be blank' } });
+  if (!req.body.user.username) {
+    return res.status(422).json({ errors: { username: 'can\'t be blank' } });
   }
 
   if (!req.body.user.password) {

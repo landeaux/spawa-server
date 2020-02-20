@@ -19,12 +19,20 @@ app.use(bodyParser.json());
 app.use(cors());
 app.use(morgan('dev'));
 
+// connect to mongodb database using mongoose
+console.log('Attempting MongoDB connection...');
 mongoose.connect(
-  `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@${process.env.DB_HOST}.mongodb.net/${process.env.DB_NAME}?retryWrites=true&w=majority`, {
+  process.env.MONGODB_URI,
+  {
     useCreateIndex: true,
     useNewUrlParser: true,
     useUnifiedTopology: true,
   },
+).then(
+  // success callback
+  () => { console.log('MongoDB connection successful!'); },
+  // failure callback
+  (err) => { console.error(err); },
 );
 
 // bring in our models

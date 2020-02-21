@@ -24,12 +24,36 @@ const UserSchema = new mongoose.Schema({
   role: {
     type: String,
     default: 'founder',
-    enum: ['founder', 'reviewer', 'evaluator', 'admin'],
+    enum: [
+      'founder',
+      'reviewer',
+      'evaluator',
+      'admin',
+    ],
   },
   active: {
     type: Boolean,
     default: true,
   },
+  state: {
+    type: String,
+    default: 'submit_eapp',
+    enum: [
+      'submit_eapp', // initial state
+      'watch_pitch_video',
+      'take_pitch_quiz',
+      'submit_pitch_deck',
+      'pitch_deck_review',
+      'book_pitch_date',
+      'pitch_accepted', // final state
+      'pitch_cancelled', // final state
+    ],
+  },
+  reviews: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Review',
+    default: [],
+  }],
   bio: String,
   image: String,
   hash: String,
@@ -73,6 +97,7 @@ UserSchema.methods.toAuthJSON = function toAuthJSON() {
     role: this.role,
     token: this.generateJWT(),
     username: this.username,
+    state: this.state,
   };
 };
 
@@ -82,6 +107,7 @@ UserSchema.methods.toUserJSONFor = function toUserJSONFor() {
     id: this._id,
     role: this.role,
     username: this.username,
+    state: this.state,
   };
 };
 

@@ -34,8 +34,8 @@ exports.signup = async (req, res, next) => {
 
 // User login
 exports.login = (req, res, next) => {
-  if (!req.body.user.email) {
-    return res.status(422).json({ errors: { email: 'can\'t be blank' } });
+  if (!req.body.user.username) {
+    return res.status(422).json({ errors: { username: 'can\'t be blank' } });
   }
 
   if (!req.body.user.password) {
@@ -61,6 +61,7 @@ exports.createUser = async (req, res, next) => {
     user.email = req.body.user.email;
     user.setPassword(req.body.user.password);
     user.role = req.body.user.role;
+    user.state = req.body.user.state;
     await user.save();
     res.status(201).json({ user: user.toUserJSONFor() });
   } catch (error) {
@@ -165,6 +166,9 @@ exports.updateUserById = async (req, res, next) => {
     }
     if (typeof req.body.user.active !== 'undefined') {
       user.active = req.body.user.active;
+    }
+    if (typeof req.body.user.state !== 'undefined') {
+      user.state = req.body.user.state;
     }
 
     await user.save();

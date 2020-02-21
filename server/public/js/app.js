@@ -550,7 +550,7 @@ eval("__webpack_require__.r(__webpack_exports__);\n/* harmony import */ var core
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, \"API_URL\", function() { return API_URL; });\nvar API_URL =  false ? undefined : 'http://localhost:5000/api';\n/* harmony default export */ __webpack_exports__[\"default\"] = (API_URL);\n\n//# sourceURL=webpack:///./src/common/config.js?");
+eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, \"API_URL\", function() { return API_URL; });\nvar API_URL = {\n  production: 'https://boiling-falls-11748.herokuapp.com/api',\n  staging: 'https://boiling-falls-11748.herokuapp.com/api',\n  development: 'http://localhost:5000/api',\n  test: 'http://localhost:5000/api'\n}[\"development\"];\n/* harmony default export */ __webpack_exports__[\"default\"] = (API_URL);\n\n//# sourceURL=webpack:///./src/common/config.js?");
 
 /***/ }),
 

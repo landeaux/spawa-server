@@ -54,6 +54,11 @@ const UserSchema = new mongoose.Schema({
     ref: 'Review',
     default: [],
   }],
+  pitchDeck: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'PitchDeck',
+    required: false,
+  },
   bio: String,
   image: String,
   hash: String,

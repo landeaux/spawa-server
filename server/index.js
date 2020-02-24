@@ -40,6 +40,7 @@ require('./models/User');
 require('./models/PitchDeck');
 require('./models/Review');
 
+// console.log(Review);
 require('./config/passport');
 
 app.use(require('./routes'));

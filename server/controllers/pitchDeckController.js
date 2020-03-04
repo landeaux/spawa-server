@@ -37,7 +37,7 @@ exports.getPitchDeckById = async (req, res, next) => {
 // Get all pitch decks
 exports.getPitchDecks = async (req, res, next) => {
   try {
-    const pitchDecks = await PitchDeck.find({}).populate('reviews').populate('owner').exec();
+    const pitchDecks = await PitchDeck.find({});
     // eslint-disable-next-line max-len
     res.status(200).json({ pitchDecks: pitchDecks.map((pitchDeck) => pitchDeck.toPitchDeckJSON()) });
   } catch (error) {

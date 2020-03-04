@@ -21,7 +21,11 @@ exports.getPitchDeckById = async (req, res, next) => {
   try {
     const { id } = req.params;
     if (!mongoose.Types.ObjectId.isValid(id)) return res.sendStatus(400);
-    const pitchDeck = await PitchDeck.findById(id).populate('reviews').populate('owner').exec();
+    const pitchDeck = await PitchDeck
+      .findById(id)
+      .populate('owner', [ 'username', 'email', ])
+      .populate('reviews')
+      .exec();
     return pitchDeck
       ? res.status(200).json({ pitchDeck: pitchDeck.toPitchDeckJSON() }) // pitch deck found
       : res.sendStatus(404); // pitch deck not found

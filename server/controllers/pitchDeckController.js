@@ -39,7 +39,9 @@ exports.getPitchDecks = async (req, res, next) => {
   try {
     const pitchDecks = await PitchDeck.find({});
     // eslint-disable-next-line max-len
-    res.status(200).json({ pitchDecks: pitchDecks.map((pitchDeck) => pitchDeck.toPitchDeckJSON()) });
+    res.status(200).json({
+      pitchDecks: pitchDecks.map((pitchDeck) => pitchDeck.toPitchDeckJSON())
+    });
   } catch (error) {
     next(error);
   }

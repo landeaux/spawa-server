@@ -22,7 +22,23 @@ const PitchDeckSchema = new mongoose.Schema({
     ref: 'Review',
     default: [],
   }],
+  owner: {
+    ref: 'User',
+    required: true,
+    type: mongoose.Schema.Types.ObjectId,
+  },
 }, { timestamps: true }); // this option creates createdAt and updatedAt fields
+
+PitchDeckSchema.methods.toPitchDeckJSON = function toPitchDeckJSON() {
+  return {
+    id: this._id,
+    url: this.url,
+    rejectionCount: this.rejectionCount,
+    accepted: this.accepted,
+    owner: this.owner,
+    reviews: this.reviews,
+  };
+};
 
 // register the schema within mongoose
 mongoose.model('PitchDeck', PitchDeckSchema);

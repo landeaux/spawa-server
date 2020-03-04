@@ -31,6 +31,7 @@ const PitchDeckSchema = new mongoose.Schema({
 
 PitchDeckSchema.methods.toPitchDeckJSON = function toPitchDeckJSON() {
   return {
+    id: this.id,
     url: this.url,
     rejectionCount: this.rejectionCount,
     accepted: this.accepted,

@@ -71,5 +71,29 @@ const ReviewSchema = new mongoose.Schema({
   },
 }, { timestamps: true }); // this option creates createdAt and updatedAt fields
 
+ReviewSchema.methods.toReviewJSON = function toReviewJSON() {
+  return {
+    id: this._id,
+    owner: this.owner,
+    pitchDeck: this.pitchDeck,
+    reviewerName: this.reviewerName,
+    isProblemStatementPresent: this.isProblemStatementPresent,
+    isSolutionDescriptionPresent: this.isSolutionDescriptionPresent,
+    isMarketCompetitionPresent: this.isMarketCompetitionPresent,
+    isBusinessModelPresent: this.isBusinessModelPresent,
+    isTeamPresent: this.isTeamPresent,
+    isAskPresent: this.isAskPresent,
+    isContactSlidePresent: this.isContactSlidePresent,
+    problemStatementRating: this.problemStatementRating,
+    solutionDescriptionRating: this.solutionDescriptionRating,
+    marketCompetitionRating: this.marketCompetitionRating,
+    businessModelRating: this.businessModelRating,
+    teamRating: this.teamRating,
+    askRating: this.askRating,
+    additionalComments: this.additionalComments,
+    pitchReady: this.pitchReady,
+  };
+};
+
 // register the schema within mongoose
 mongoose.model('Review', ReviewSchema);

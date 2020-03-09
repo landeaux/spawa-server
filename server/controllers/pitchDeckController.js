@@ -23,8 +23,7 @@ exports.getPitchDeckById = async (req, res, next) => {
     if (!mongoose.Types.ObjectId.isValid(id)) return res.sendStatus(400);
     const pitchDeck = await PitchDeck
       .findById(id)
-      .populate('owner', [ 'username', 'email', ])
-      .populate('reviews')
+      .populate('owner', ['username', 'email'])
       .exec();
     return pitchDeck
       ? res.status(200).json({ pitchDeck: pitchDeck.toPitchDeckJSON() }) // pitch deck found
@@ -40,7 +39,7 @@ exports.getPitchDecks = async (req, res, next) => {
     const pitchDecks = await PitchDeck.find({});
     // eslint-disable-next-line max-len
     res.status(200).json({
-      pitchDecks: pitchDecks.map((pitchDeck) => pitchDeck.toPitchDeckJSON())
+      pitchDecks: pitchDecks.map((pitchDeck) => pitchDeck.toPitchDeckJSON()),
     });
   } catch (error) {
     next(error);

@@ -94,7 +94,7 @@ UserSchema.methods.generateJWT = function generateJWT() {
 
 // get JSON representation of user to pass to front-end during authentication
 UserSchema.methods.toAuthJSON = function toAuthJSON() {
-  return {
+  const user = {
     bio: this.bio,
     email: this.email,
     id: this._id,
@@ -103,27 +103,48 @@ UserSchema.methods.toAuthJSON = function toAuthJSON() {
     token: this.generateJWT(),
     username: this.username,
     state: this.state,
+    createdAt: this.createdAt,
+    updatedAt: this.updatedAt,
+    reviews: this.reviews,
+    pitchDeck: this.pitchDeck,
   };
+  if (user.role === 'founder') delete user.reviews;
+  if (user.role !== 'founder') delete user.pitchDeck;
+  return user;
 };
 
 UserSchema.methods.toUserJSONFor = function toUserJSONFor() {
-  return {
+  const user = {
     email: this.email,
     id: this._id,
     role: this.role,
     username: this.username,
     state: this.state,
+    createdAt: this.createdAt,
+    updatedAt: this.updatedAt,
+    reviews: this.reviews,
+    pitchDeck: this.pitchDeck,
   };
+  if (user.role === 'founder') delete user.reviews;
+  if (user.role !== 'founder') delete user.pitchDeck;
+  return user;
 };
 
 UserSchema.methods.toProfileJSONFor = function toProfileJSONFor() {
-  return {
+  const profile = {
     bio: this.bio,
     id: this._id,
     image: this.image || 'https://static.productionready.io/images/smiley-cyrus.jpg',
     role: this.role,
     username: this.username,
+    createdAt: this.createdAt,
+    updatedAt: this.updatedAt,
+    reviews: this.reviews,
+    pitchDeck: this.pitchDeck,
   };
+  if (profile.role === 'founder') delete profile.reviews;
+  if (profile.role !== 'founder') delete profile.pitchDeck;
+  return profile;
 };
 
 // register the schema within mongoose

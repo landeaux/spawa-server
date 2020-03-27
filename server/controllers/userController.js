@@ -178,6 +178,14 @@ exports.updateUserById = async (req, res, next) => {
   }
 };
 
+exports.suspendUserById = async (req, res, next) => {
+  try {
+    return res.send('Hello from the /user/suspend/:id route!');
+  } catch (error) {
+    return next(error);
+  }
+};
+
 // Delete user
 exports.deleteUser = async (req, res, next) => {
   try {

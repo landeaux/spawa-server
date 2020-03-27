@@ -11,6 +11,7 @@ const {
   updateUser,
   updateUserById,
   deleteUser,
+  suspendUserById,
 } = require('../../controllers/userController');
 
 // User signup
@@ -38,7 +39,7 @@ router.put('/user', auth.required, updateUser);
 router.put('/user/:id', auth.required, grantAccess('updateAny', 'user'), updateUserById);
 
 // Update user by ID
-router.put('/user/suspend/:id', (req, res) => res.send('Hello from the /user/suspend/:id route!'));
+router.put('/user/suspend/:id', suspendUserById);
 
 // Delete user
 router.delete('/user/:id', auth.required, grantAccess('deleteAny', 'user'), deleteUser);

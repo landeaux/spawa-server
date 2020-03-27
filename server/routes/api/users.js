@@ -39,7 +39,7 @@ router.put('/user', auth.required, updateUser);
 router.put('/user/:id', auth.required, grantAccess('updateAny', 'user'), updateUserById);
 
 // Update user by ID
-router.put('/user/suspend/:id', suspendUserById);
+router.put('/user/suspend/:id', auth.required, grantAccess('updateAny', 'user'), suspendUserById);
 
 // Delete user
 router.delete('/user/:id', auth.required, grantAccess('deleteAny', 'user'), deleteUser);

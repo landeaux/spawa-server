@@ -38,7 +38,7 @@ router.put('/user', auth.required, updateUser);
 // Update user by ID
 router.put('/user/:id', auth.required, grantAccess('updateAny', 'user'), updateUserById);
 
-// Update user by ID
+// Suspend user by ID
 router.put('/user/suspend/:id', auth.required, grantAccess('updateAny', 'user'), suspendUserById);
 
 // Delete user

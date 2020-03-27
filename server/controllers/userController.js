@@ -195,6 +195,23 @@ exports.suspendUserById = async (req, res, next) => {
   }
 };
 
+// Activate user by id
+exports.activateUserById = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(id)) return res.sendStatus(400);
+    const user = await User.findById(id);
+    if (!user) { return res.sendStatus(404); }
+
+    user.active = true;
+
+    await user.save();
+    return res.status(200).json({ user: user.toUserJSONFor() });
+  } catch (error) {
+    return next(error);
+  }
+};
+
 // Delete user
 exports.deleteUser = async (req, res, next) => {
   try {

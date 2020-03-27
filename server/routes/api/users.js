@@ -12,6 +12,7 @@ const {
   updateUserById,
   deleteUser,
   suspendUserById,
+  activateUserById,
 } = require('../../controllers/userController');
 
 // User signup
@@ -40,6 +41,9 @@ router.put('/user/:id', auth.required, grantAccess('updateAny', 'user'), updateU
 
 // Suspend user by ID
 router.put('/user/suspend/:id', auth.required, grantAccess('updateAny', 'user'), suspendUserById);
+
+// Activate user by ID
+router.put('/user/activate/:id', auth.required, grantAccess('updateAny', 'user'), activateUserById);
 
 // Delete user
 router.delete('/user/:id', auth.required, grantAccess('deleteAny', 'user'), deleteUser);

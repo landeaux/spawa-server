@@ -37,6 +37,9 @@ router.put('/user', auth.required, updateUser);
 // Update user by ID
 router.put('/user/:id', auth.required, grantAccess('updateAny', 'user'), updateUserById);
 
+// Update user by ID
+router.put('/user/suspend/:id', (req, res) => res.send('Hello from the /user/suspend/:id route!'));
+
 // Delete user
 router.delete('/user/:id', auth.required, grantAccess('deleteAny', 'user'), deleteUser);
 

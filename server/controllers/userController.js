@@ -178,9 +178,18 @@ exports.updateUserById = async (req, res, next) => {
   }
 };
 
+// Suspend user by id
 exports.suspendUserById = async (req, res, next) => {
   try {
-    return res.send('Hello from the /user/suspend/:id route!');
+    const { id } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(id)) return res.sendStatus(400);
+    const user = await User.findById(id);
+    if (!user) { return res.sendStatus(404); }
+
+    user.active = false;
+
+    await user.save();
+    return res.status(200).json({ user: user.toUserJSONFor() });
   } catch (error) {
     return next(error);
   }

@@ -9,16 +9,34 @@ function toProfileJSON(contact) {
   return profile;
 }
 
+async function getProfileHelper(req, res, next, user) {
+  try {
+    let contact;
+
+    // if the user already has HubSpot contact vid stored, use that to fetch
+    // otherwise, fetch by user email (less reliable, since email is mutable)
+    if (user.hubspotContactVid) {
+      contact = await hubspot.contacts.getById(user.hubspotContactVid);
+    } else {
+      contact = await hubspot.contacts.getByEmail(user.email);
+      user.hubspotContactVid = contact.vid;
+      await user.save();
+    }
+    if (!contact) { return res.sendStatus(404); }
+    const profile = toProfileJSON(contact);
+    return res.status(200).json({ profile });
+  } catch (error) {
+    return next(error);
+  }
+}
+
 // Get current user profile
 exports.getProfile = async (req, res, next) => {
   try {
     const { username } = req.payload;
     const user = await User.findOne({ username });
     if (!user) { return res.sendStatus(404); }
-    const contact = await hubspot.contacts.getByEmail(user.email);
-    if (!contact) { return res.sendStatus(404); }
-    const profile = toProfileJSON(contact);
-    return res.status(200).json({ profile });
+    return getProfileHelper(req, res, next, user);
   } catch (error) {
     return next(error);
   }
@@ -30,10 +48,7 @@ exports.getProfileByUsername = async (req, res, next) => {
     const { username } = req.params;
     const user = await User.findOne({ username });
     if (!user) { return res.sendStatus(404); }
-    const contact = await hubspot.contacts.getByEmail(user.email);
-    if (!contact) { return res.sendStatus(404); }
-    const profile = toProfileJSON(contact);
-    return res.status(200).json({ profile });
+    return getProfileHelper(req, res, next, user);
   } catch (error) {
     return next(error);
   }

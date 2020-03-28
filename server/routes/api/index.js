@@ -4,7 +4,6 @@ router.use('/', require('./users'));
 router.use('/profile', require('./profiles'));
 router.use('/', require('./pitchDecks'));
 router.use('/', require('./reviews'));
-router.use('/contacts', require('./contacts'));
 
 router.use((err, req, res, next) => {
   if (err.name === 'ValidationError') {

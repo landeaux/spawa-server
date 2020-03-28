@@ -59,6 +59,18 @@ const UserSchema = new mongoose.Schema({
     ref: 'PitchDeck',
     required: false,
   },
+  hubspotContactVid: {
+    type: Number,
+    required: false,
+    validate: {
+      validator(value) {
+        return Number.isInteger(value) && value >= 0;
+      },
+      message(props) {
+        return `${props.value} must be a non-negative integer.`;
+      },
+    },
+  },
   hash: String,
   salt: String,
 }, { timestamps: true }); // this option creates createdAt and updatedAt fields
@@ -103,6 +115,7 @@ UserSchema.methods.toAuthJSON = function toAuthJSON() {
     token: this.generateJWT(),
     updatedAt: this.updatedAt,
     username: this.username,
+    hubspotContactVid: this.hubspotContactVid,
   };
   if (user.role === 'founder') delete user.reviews;
   if (user.role !== 'founder') delete user.pitchDeck;
@@ -121,6 +134,7 @@ UserSchema.methods.toUserJSONFor = function toUserJSONFor() {
     state: this.state,
     updatedAt: this.updatedAt,
     username: this.username,
+    hubspotContactVid: this.hubspotContactVid,
   };
   if (user.role === 'founder') delete user.reviews;
   if (user.role !== 'founder') delete user.pitchDeck;

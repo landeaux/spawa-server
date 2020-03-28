@@ -3,12 +3,20 @@ const hubspot = require('../hubspot');
 
 const User = mongoose.model('User');
 
+/**
+ * Helper method for profile routes to format the contact object received from
+ * HubSpot API into a minimal format appropriate for requesting client.
+ */
 function toProfileJSON(contact) {
   const profile = contact.properties;
   profile.profileUrl = contact['profile-url'];
   return profile;
 }
 
+/**
+ * Helper method for profile routes to fetch HubSpot contact info once the user
+ * has been found.
+ */
 async function getProfileHelper(req, res, next, user) {
   try {
     let contact;

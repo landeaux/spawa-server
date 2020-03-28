@@ -8,7 +8,19 @@ const User = mongoose.model('User');
  * HubSpot API into a minimal format appropriate for requesting client.
  */
 function toProfileJSON(contact) {
-  const profile = contact.properties;
+  const profile = {};
+  const { properties } = contact;
+
+  // get rid of all the irrelevant meta props added by hubspot
+  Object.keys(properties).forEach((key) => {
+    const prefix = key.substr(0, 3);
+    if (prefix !== 'hs_') {
+      // only save the property value; we don't need everything else
+      profile[key] = properties[key].value;
+    }
+  });
+
+  // add the profile-url, as it may be useful for admins
   profile.profileUrl = contact['profile-url'];
   return profile;
 }

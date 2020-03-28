@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const string = require('lodash/string');
 const hubspot = require('../hubspot');
 
 const User = mongoose.model('User');
@@ -15,8 +16,9 @@ function toProfileJSON(contact) {
   Object.keys(properties).forEach((key) => {
     const prefix = key.substr(0, 3);
     if (prefix !== 'hs_') {
-      // only save the property value; we don't need everything else
-      profile[key] = properties[key].value;
+      // Only save the property value; we don't need everything else.
+      // Also, convert key name to camelCase.
+      profile[string.camelCase(key)] = properties[key].value;
     }
   });
 

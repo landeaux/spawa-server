@@ -96,17 +96,17 @@ UserSchema.methods.generateJWT = function generateJWT() {
 UserSchema.methods.toAuthJSON = function toAuthJSON() {
   const user = {
     bio: this.bio,
+    createdAt: this.createdAt,
     email: this.email,
     id: this._id,
     image: this.image,
-    role: this.role,
-    token: this.generateJWT(),
-    username: this.username,
-    state: this.state,
-    createdAt: this.createdAt,
-    updatedAt: this.updatedAt,
-    reviews: this.reviews,
     pitchDeck: this.pitchDeck,
+    reviews: this.reviews,
+    role: this.role,
+    state: this.state,
+    token: this.generateJWT(),
+    updatedAt: this.updatedAt,
+    username: this.username,
   };
   if (user.role === 'founder') delete user.reviews;
   if (user.role !== 'founder') delete user.pitchDeck;
@@ -115,15 +115,16 @@ UserSchema.methods.toAuthJSON = function toAuthJSON() {
 
 UserSchema.methods.toUserJSONFor = function toUserJSONFor() {
   const user = {
+    active: this.active,
+    createdAt: this.createdAt,
     email: this.email,
     id: this._id,
-    role: this.role,
-    username: this.username,
-    state: this.state,
-    createdAt: this.createdAt,
-    updatedAt: this.updatedAt,
-    reviews: this.reviews,
     pitchDeck: this.pitchDeck,
+    reviews: this.reviews,
+    role: this.role,
+    state: this.state,
+    updatedAt: this.updatedAt,
+    username: this.username,
   };
   if (user.role === 'founder') delete user.reviews;
   if (user.role !== 'founder') delete user.pitchDeck;
@@ -133,14 +134,14 @@ UserSchema.methods.toUserJSONFor = function toUserJSONFor() {
 UserSchema.methods.toProfileJSONFor = function toProfileJSONFor() {
   const profile = {
     bio: this.bio,
+    createdAt: this.createdAt,
     id: this._id,
     image: this.image || 'https://static.productionready.io/images/smiley-cyrus.jpg',
-    role: this.role,
-    username: this.username,
-    createdAt: this.createdAt,
-    updatedAt: this.updatedAt,
-    reviews: this.reviews,
     pitchDeck: this.pitchDeck,
+    reviews: this.reviews,
+    role: this.role,
+    updatedAt: this.updatedAt,
+    username: this.username,
   };
   if (profile.role === 'founder') delete profile.reviews;
   if (profile.role !== 'founder') delete profile.pitchDeck;

@@ -1,35 +1,39 @@
 const mongoose = require('mongoose');
+const hubspot = require('../hubspot');
 
 const User = mongoose.model('User');
 
-// Preload user profile on routes with ':username'
-exports.preloadUser = async (req, res, next, username) => {
-  try {
-    const user = await User.findOne({ username });
-    if (!user) { return res.sendStatus(404); }
-    req.profile = user;
-    return next();
-  } catch (error) {
-    return next(error);
-  }
-};
+function toProfileJSON(contact) {
+  const profile = contact.properties;
+  profile.profileUrl = contact['profile-url'];
+  return profile;
+}
 
 // Get current user profile
 exports.getProfile = async (req, res, next) => {
   try {
     const { username } = req.payload;
-    const profile = await User.findOne({ username });
-    if (!profile) { return res.sendStatus(404); }
-    return res.status(200).json({ profile: profile.toProfileJSONFor() });
+    const user = await User.findOne({ username });
+    if (!user) { return res.sendStatus(404); }
+    const contact = await hubspot.contacts.getByEmail(user.email);
+    if (!contact) { return res.sendStatus(404); }
+    const profile = toProfileJSON(contact);
+    return res.status(200).json({ profile });
   } catch (error) {
     return next(error);
   }
 };
 
 // Get user profile by username
-exports.getProfileByUsername = (req, res, next) => {
+exports.getProfileByUsername = async (req, res, next) => {
   try {
-    return res.status(200).json({ profile: req.profile.toProfileJSONFor() });
+    const { username } = req.params;
+    const user = await User.findOne({ username });
+    if (!user) { return res.sendStatus(404); }
+    const contact = await hubspot.contacts.getByEmail(user.email);
+    if (!contact) { return res.sendStatus(404); }
+    const profile = toProfileJSON(contact);
+    return res.status(200).json({ profile });
   } catch (error) {
     return next(error);
   }

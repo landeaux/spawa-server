@@ -59,8 +59,18 @@ const UserSchema = new mongoose.Schema({
     ref: 'PitchDeck',
     required: false,
   },
-  bio: String,
-  image: String,
+  hubspotContactVid: {
+    type: Number,
+    required: false,
+    validate: {
+      validator(value) {
+        return Number.isInteger(value) && value >= 0;
+      },
+      message(props) {
+        return `${props.value} must be a non-negative integer.`;
+      },
+    },
+  },
   hash: String,
   salt: String,
 }, { timestamps: true }); // this option creates createdAt and updatedAt fields
@@ -95,11 +105,9 @@ UserSchema.methods.generateJWT = function generateJWT() {
 // get JSON representation of user to pass to front-end during authentication
 UserSchema.methods.toAuthJSON = function toAuthJSON() {
   const user = {
-    bio: this.bio,
     createdAt: this.createdAt,
     email: this.email,
     id: this._id,
-    image: this.image,
     pitchDeck: this.pitchDeck,
     reviews: this.reviews,
     role: this.role,
@@ -107,6 +115,7 @@ UserSchema.methods.toAuthJSON = function toAuthJSON() {
     token: this.generateJWT(),
     updatedAt: this.updatedAt,
     username: this.username,
+    hubspotContactVid: this.hubspotContactVid,
   };
   if (user.role === 'founder') delete user.reviews;
   if (user.role !== 'founder') delete user.pitchDeck;
@@ -125,27 +134,11 @@ UserSchema.methods.toUserJSONFor = function toUserJSONFor() {
     state: this.state,
     updatedAt: this.updatedAt,
     username: this.username,
+    hubspotContactVid: this.hubspotContactVid,
   };
   if (user.role === 'founder') delete user.reviews;
   if (user.role !== 'founder') delete user.pitchDeck;
   return user;
-};
-
-UserSchema.methods.toProfileJSONFor = function toProfileJSONFor() {
-  const profile = {
-    bio: this.bio,
-    createdAt: this.createdAt,
-    id: this._id,
-    image: this.image || 'https://static.productionready.io/images/smiley-cyrus.jpg',
-    pitchDeck: this.pitchDeck,
-    reviews: this.reviews,
-    role: this.role,
-    updatedAt: this.updatedAt,
-    username: this.username,
-  };
-  if (profile.role === 'founder') delete profile.reviews;
-  if (profile.role !== 'founder') delete profile.pitchDeck;
-  return profile;
 };
 
 // register the schema within mongoose

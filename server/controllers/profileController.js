@@ -8,17 +8,40 @@ const User = mongoose.model('User');
  * Helper method for profile routes to format the contact object received from
  * HubSpot API into a minimal format appropriate for requesting client.
  */
-function toProfileJSON(contact) {
-  const profile = {};
+async function toProfileJSON(contact) {
+  const profile = {
+    eapp: {},
+    pitchQuiz: {},
+    pitchDeck: {},
+  };
   const { properties } = contact;
+
+  const allProps = await hubspot.contacts.properties.get();
+
+  const eappKeys = allProps
+    .filter((prop) => prop.groupName === 'eapp')
+    .map((prop) => prop.name);
+  const pitchQuizKeys = allProps
+    .filter((prop) => prop.groupName === 'pitch_quiz')
+    .map((prop) => prop.name);
+  const pitchDeckKeys = allProps
+    .filter((prop) => prop.groupName === 'pitch_deck')
+    .map((prop) => prop.name);
 
   // get rid of all the irrelevant meta props added by hubspot
   Object.keys(properties).forEach((key) => {
     const prefix = key.substr(0, 3);
     if (prefix !== 'hs_') {
+      let groupName;
+      if (eappKeys.includes(key)) groupName = 'eapp';
+      else if (pitchQuizKeys.includes(key)) groupName = 'pitchQuiz';
+      else if (pitchDeckKeys.includes(key)) groupName = 'pitchDeck';
+
       // Only save the property value; we don't need everything else.
       // Also, convert key name to camelCase.
-      profile[string.camelCase(key)] = properties[key].value;
+      if (groupName) {
+        profile[groupName][string.camelCase(key)] = properties[key].value;
+      }
     }
   });
 
@@ -45,7 +68,7 @@ async function getProfileHelper(req, res, next, user) {
       await user.save();
     }
     if (!contact) { return res.sendStatus(404); }
-    const profile = toProfileJSON(contact);
+    const profile = await toProfileJSON(contact);
     return res.status(200).json({ profile });
   } catch (error) {
     return next(error);

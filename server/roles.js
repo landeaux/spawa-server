@@ -6,25 +6,40 @@ exports.roles = (function roles() {
   ac.grant('founder')
     .readOwn('user')
     .updateOwn('user')
-    .readOwn('profile');
+    .readOwn('profile')
+    .createOwn('pitchdeck')
+    .readOwn('pitchdeck')
+    .updateOwn('pitchdeck');
 
   ac.grant('reviewer')
-    .extend('founder')
-    .readAny('profile');
+    .readOwn('user')
+    .updateOwn('user')
+    .readAny('profile')
+    .createOwn('review')
+    .readOwn('review')
+    .updateOwn('review')
+    .deleteOwn('review')
+    .createAny('pitchdeck')
+    .readAny('pitchdeck')
+    .updateAny('pitchdeck')
+    .deleteAny('pitchdeck');
 
   ac.grant('evaluator')
     .extend('reviewer');
 
   ac.grant('admin')
     .extend([
-      'founder',
       'reviewer',
       'evaluator',
     ])
     .createAny('user')
     .readAny('user')
     .updateAny('user')
-    .deleteAny('user');
+    .deleteAny('user')
+    .createAny('review')
+    .readAny('review')
+    .updateAny('review')
+    .deleteAny('review');
 
   return ac;
 }());

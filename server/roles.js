@@ -19,10 +19,7 @@ exports.roles = (function roles() {
     .readOwn('review')
     .updateOwn('review')
     .deleteOwn('review')
-    .createAny('pitchdeck')
-    .readAny('pitchdeck')
-    .updateAny('pitchdeck')
-    .deleteAny('pitchdeck');
+    .readAny('pitchdeck');
 
   ac.grant('evaluator')
     .extend('reviewer');
@@ -39,7 +36,8 @@ exports.roles = (function roles() {
     .createAny('review')
     .readAny('review')
     .updateAny('review')
-    .deleteAny('review');
+    .deleteAny('review')
+    .deleteAny('pitchdeck');
 
   return ac;
 }());

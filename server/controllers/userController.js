@@ -57,11 +57,12 @@ exports.login = (req, res, next) => {
 exports.createUser = async (req, res, next) => {
   try {
     const user = new User();
-    user.username = req.body.user.username;
     user.email = req.body.user.email;
+    user.username = req.body.user.username;
     user.setPassword(req.body.user.password);
+    user.active = req.body.user.active;
     user.role = req.body.user.role;
-    user.state = req.body.user.state;
+    if (req.body.user.state) user.state = req.body.user.state;
     await user.save();
     res.status(201).json({ user: user.toUserJSONFor() });
   } catch (error) {

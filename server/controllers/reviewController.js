@@ -77,6 +77,14 @@ exports.deleteReview = async (req, res, next) => {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       res.sendStatus(400);
     } else {
+      const reviewerDoc = await Review.findById(id);
+      const userReviewDoc = await User.findById(reviewerDoc.owner);
+      await userReviewDoc.reviews.pull(id);
+      await userReviewDoc.save();
+      const pitchDeckReviewDoc = await PitchDeck.findById(reviewerDoc.pitchDeck);
+      console.log(pitchDeckReviewDoc);
+      await pitchDeckReviewDoc.reviews.pull(id);
+      await pitchDeckReviewDoc.save();
       const STATUS_CODE = await Review.findByIdAndDelete(id)
         ? 204 // No Content
         : 410; // Gone

@@ -78,7 +78,7 @@ exports.deleteReview = async (req, res, next) => {
     }
     const reviewDoc = await Review.findById(id);
     if (!reviewDoc) {
-      return res.send(410).json({
+      return res.status(410).json({
         errors: {
           review: 'does not exist',
         },
@@ -86,7 +86,7 @@ exports.deleteReview = async (req, res, next) => {
     }
     const reviewOwnerDoc = await User.findById(reviewDoc.owner);
     if (!reviewOwnerDoc) {
-      return res.send(404).json({
+      return res.status(404).json({
         errors: {
           user: 'does not exist',
         },
@@ -96,7 +96,7 @@ exports.deleteReview = async (req, res, next) => {
     await reviewOwnerDoc.save();
     const pitchDeckDoc = await PitchDeck.findById(reviewDoc.pitchDeck);
     if (!pitchDeckDoc) {
-      return res.send(404).json({
+      return res.status(404).json({
         errors: {
           pitchDeck: 'does not exist',
         },

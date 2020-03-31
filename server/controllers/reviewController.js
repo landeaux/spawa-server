@@ -89,7 +89,6 @@ exports.deleteReview = async (req, res, next) => {
       await userReviewDoc.reviews.pull(id);
       await userReviewDoc.save();
       const pitchDeckReviewDoc = await PitchDeck.findById(reviewerDoc.pitchDeck);
-      console.log(pitchDeckReviewDoc);
       await pitchDeckReviewDoc.reviews.pull(id);
       await pitchDeckReviewDoc.save();
       const STATUS_CODE = await Review.findByIdAndDelete(id)

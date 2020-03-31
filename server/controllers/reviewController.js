@@ -33,10 +33,9 @@ exports.createReview = async (req, res, next) => {
     const userDoc = await User.findById(req.body.review.owner);
     userDoc.reviews.push(reviewDoc._id);
     await userDoc.save();
-    res.status(201).json({ review: review.toReviewJSON() });
+    return res.status(201).json({ review: review.toReviewJSON() });
   } catch (error) {
-    console.log('error');
-    next(error);
+    return next(error);
   }
 };
 
@@ -75,28 +74,41 @@ exports.deleteReview = async (req, res, next) => {
   try {
     const { id } = req.params;
     if (!mongoose.Types.ObjectId.isValid(id)) {
-      res.sendStatus(400);
-    } else {
-      const reviewerDoc = await Review.findById(id);
-      if (!reviewerDoc) {
-        return res.send(404).json({
-          errors: {
-            review: 'does not exist',
-          },
-        });
-      }
-      const userReviewDoc = await User.findById(reviewerDoc.owner);
-      await userReviewDoc.reviews.pull(id);
-      await userReviewDoc.save();
-      const pitchDeckReviewDoc = await PitchDeck.findById(reviewerDoc.pitchDeck);
-      await pitchDeckReviewDoc.reviews.pull(id);
-      await pitchDeckReviewDoc.save();
-      const STATUS_CODE = await Review.findByIdAndDelete(id)
-        ? 204 // No Content
-        : 410; // Gone
-      res.sendStatus(STATUS_CODE);
+      return res.sendStatus(400);
     }
+    const reviewerDoc = await Review.findById(id);
+    if (!reviewerDoc) {
+      return res.send(404).json({
+        errors: {
+          review: 'does not exist',
+        },
+      });
+    }
+    const userReviewDoc = await User.findById(reviewerDoc.owner);
+    if (!userReviewDoc) {
+      return res.send(404).json({
+        errors: {
+          user: 'does not exist',
+        },
+      });
+    }
+    await userReviewDoc.reviews.pull(id);
+    await userReviewDoc.save();
+    const pitchDeckReviewDoc = await PitchDeck.findById(reviewerDoc.pitchDeck);
+    if (!pitchDeckReviewDoc) {
+      return res.send(404).json({
+        errors: {
+          pitchDeck: 'does not exist',
+        },
+      });
+    }
+    await pitchDeckReviewDoc.reviews.pull(id);
+    await pitchDeckReviewDoc.save();
+    const STATUS_CODE = await Review.findByIdAndDelete(id)
+      ? 204 // No Content
+      : 410; // Gone
+    return res.sendStatus(STATUS_CODE);
   } catch (error) {
-    next(error);
+    return next(error);
   }
 };

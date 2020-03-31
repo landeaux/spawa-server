@@ -74,11 +74,11 @@ exports.deleteReview = async (req, res, next) => {
   try {
     const { id } = req.params;
     if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.sendStatus(410);
+      return res.sendStatus(400);
     }
     const reviewDoc = await Review.findById(id);
     if (!reviewDoc) {
-      return res.send(404).json({
+      return res.send(410).json({
         errors: {
           review: 'does not exist',
         },

@@ -36,6 +36,7 @@
     "express-jwt": "^5.3.1",
     "hubspot": "^2.3.8",
     "jsonwebtoken": "^8.5.1",
+    "lodash": "^4.17.15",
     "mongodb": "^3.4.1",
     "mongoose": "^5.7.12",
     "mongoose-unique-validator": "^2.0.3",
@@ -49,6 +50,6 @@
     "eslint-plugin-import": "^2.19.1",
     "husky": "^4.0.1",
     "lint-staged": "^9.5.0",
-    "nodemon": "^1.19.4"
+    "nodemon": "^2.0.2"
   }
 }

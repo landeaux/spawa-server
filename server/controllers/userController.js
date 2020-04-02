@@ -57,11 +57,12 @@ exports.login = (req, res, next) => {
 exports.createUser = async (req, res, next) => {
   try {
     const user = new User();
-    user.username = req.body.user.username;
     user.email = req.body.user.email;
+    user.username = req.body.user.username;
     user.setPassword(req.body.user.password);
+    user.active = req.body.user.active;
     user.role = req.body.user.role;
-    user.state = req.body.user.state;
+    if (req.body.user.state) user.state = req.body.user.state;
     await user.save();
     res.status(201).json({ user: user.toUserJSONFor() });
   } catch (error) {
@@ -170,6 +171,40 @@ exports.updateUserById = async (req, res, next) => {
     if (typeof req.body.user.state !== 'undefined') {
       user.state = req.body.user.state;
     }
+
+    await user.save();
+    return res.status(200).json({ user: user.toUserJSONFor() });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+// Suspend user by id
+exports.suspendUserById = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(id)) return res.sendStatus(400);
+    const user = await User.findById(id);
+    if (!user) { return res.sendStatus(404); }
+
+    user.active = false;
+
+    await user.save();
+    return res.status(200).json({ user: user.toUserJSONFor() });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+// Activate user by id
+exports.activateUserById = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(id)) return res.sendStatus(400);
+    const user = await User.findById(id);
+    if (!user) { return res.sendStatus(404); }
+
+    user.active = true;
 
     await user.save();
     return res.status(200).json({ user: user.toUserJSONFor() });

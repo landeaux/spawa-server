@@ -59,8 +59,18 @@ const UserSchema = new mongoose.Schema({
     ref: 'PitchDeck',
     required: false,
   },
-  bio: String,
-  image: String,
+  hubspotContactVid: {
+    type: Number,
+    required: false,
+    validate: {
+      validator(value) {
+        return Number.isInteger(value) && value >= 0;
+      },
+      message(props) {
+        return `${props.value} must be a non-negative integer.`;
+      },
+    },
+  },
   hash: String,
   salt: String,
 }, { timestamps: true }); // this option creates createdAt and updatedAt fields
@@ -95,18 +105,17 @@ UserSchema.methods.generateJWT = function generateJWT() {
 // get JSON representation of user to pass to front-end during authentication
 UserSchema.methods.toAuthJSON = function toAuthJSON() {
   const user = {
-    bio: this.bio,
+    createdAt: this.createdAt,
     email: this.email,
     id: this._id,
-    image: this.image,
-    role: this.role,
-    token: this.generateJWT(),
-    username: this.username,
-    state: this.state,
-    createdAt: this.createdAt,
-    updatedAt: this.updatedAt,
-    reviews: this.reviews,
     pitchDeck: this.pitchDeck,
+    reviews: this.reviews,
+    role: this.role,
+    state: this.state,
+    token: this.generateJWT(),
+    updatedAt: this.updatedAt,
+    username: this.username,
+    hubspotContactVid: this.hubspotContactVid,
   };
   if (user.role === 'founder') delete user.reviews;
   if (user.role !== 'founder') delete user.pitchDeck;
@@ -115,36 +124,21 @@ UserSchema.methods.toAuthJSON = function toAuthJSON() {
 
 UserSchema.methods.toUserJSONFor = function toUserJSONFor() {
   const user = {
+    active: this.active,
+    createdAt: this.createdAt,
     email: this.email,
     id: this._id,
-    role: this.role,
-    username: this.username,
-    state: this.state,
-    createdAt: this.createdAt,
-    updatedAt: this.updatedAt,
-    reviews: this.reviews,
     pitchDeck: this.pitchDeck,
+    reviews: this.reviews,
+    role: this.role,
+    state: this.state,
+    updatedAt: this.updatedAt,
+    username: this.username,
+    hubspotContactVid: this.hubspotContactVid,
   };
   if (user.role === 'founder') delete user.reviews;
   if (user.role !== 'founder') delete user.pitchDeck;
   return user;
-};
-
-UserSchema.methods.toProfileJSONFor = function toProfileJSONFor() {
-  const profile = {
-    bio: this.bio,
-    id: this._id,
-    image: this.image || 'https://static.productionready.io/images/smiley-cyrus.jpg',
-    role: this.role,
-    username: this.username,
-    createdAt: this.createdAt,
-    updatedAt: this.updatedAt,
-    reviews: this.reviews,
-    pitchDeck: this.pitchDeck,
-  };
-  if (profile.role === 'founder') delete profile.reviews;
-  if (profile.role !== 'founder') delete profile.pitchDeck;
-  return profile;
 };
 
 // register the schema within mongoose

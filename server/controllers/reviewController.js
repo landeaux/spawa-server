@@ -33,10 +33,9 @@ exports.createReview = async (req, res, next) => {
     const userDoc = await User.findById(req.body.review.owner);
     userDoc.reviews.push(reviewDoc._id);
     await userDoc.save();
-    res.status(201).json({ review: review.toReviewJSON() });
+    return res.status(201).json({ review: review.toReviewJSON() });
   } catch (error) {
-    console.log('error');
-    next(error);
+    return next(error);
   }
 };
 
@@ -75,14 +74,41 @@ exports.deleteReview = async (req, res, next) => {
   try {
     const { id } = req.params;
     if (!mongoose.Types.ObjectId.isValid(id)) {
-      res.sendStatus(400);
-    } else {
-      const STATUS_CODE = await Review.findByIdAndDelete(id)
-        ? 204 // No Content
-        : 410; // Gone
-      res.sendStatus(STATUS_CODE);
+      return res.sendStatus(400);
     }
+    const reviewDoc = await Review.findById(id);
+    if (!reviewDoc) {
+      return res.status(410).json({
+        errors: {
+          review: 'does not exist',
+        },
+      });
+    }
+    const reviewOwnerDoc = await User.findById(reviewDoc.owner);
+    if (!reviewOwnerDoc) {
+      return res.status(404).json({
+        errors: {
+          user: 'does not exist',
+        },
+      });
+    }
+    await reviewOwnerDoc.reviews.pull(id);
+    await reviewOwnerDoc.save();
+    const pitchDeckDoc = await PitchDeck.findById(reviewDoc.pitchDeck);
+    if (!pitchDeckDoc) {
+      return res.status(404).json({
+        errors: {
+          pitchDeck: 'does not exist',
+        },
+      });
+    }
+    await pitchDeckDoc.reviews.pull(id);
+    await pitchDeckDoc.save();
+    const STATUS_CODE = await Review.findByIdAndDelete(id)
+      ? 204 // No Content
+      : 410; // Gone
+    return res.sendStatus(STATUS_CODE);
   } catch (error) {
-    next(error);
+    return next(error);
   }
 };

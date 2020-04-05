@@ -1,22 +1,29 @@
 const mongoose = require('mongoose');
 const passport = require('passport');
-const { roles } = require('../roles');
+const hubspot = require('../hubspot');
 
 const User = mongoose.model('User');
 
-exports.grantAccess = (action, resource) => async (req, res, next) => {
+async function getHubspotVid(email) {
   try {
-    const permission = roles.can(req.payload.role)[action](resource);
-    if (!permission.granted) {
-      return res.status(401).json({
-        error: 'You don\'t have enough permission to perform this action',
-      });
+    const { vid } = await hubspot.contacts.getByEmail(email);
+    return vid;
+  } catch ({ statusCode }) {
+    if (statusCode === 404) {
+      const contactObj = {
+        properties: [
+          {
+            property: 'email',
+            value: email,
+          },
+        ],
+      };
+      const { vid } = await hubspot.contacts.create(contactObj);
+      return vid;
     }
-    return next();
-  } catch (error) {
-    return next(error);
+    return null;
   }
-};
+}
 
 // User signup
 exports.signup = async (req, res, next) => {
@@ -25,6 +32,10 @@ exports.signup = async (req, res, next) => {
     user.username = req.body.user.username;
     user.email = req.body.user.email;
     user.setPassword(req.body.user.password);
+    const vid = await getHubspotVid(req.body.user.email);
+    if (vid) {
+      user.hubspotVid = vid;
+    }
     await user.save();
     res.status(201).json({ user: user.toAuthJSON() });
   } catch (error) {
@@ -63,6 +74,10 @@ exports.createUser = async (req, res, next) => {
     user.active = req.body.user.active;
     user.role = req.body.user.role;
     if (req.body.user.state) user.state = req.body.user.state;
+    const vid = await getHubspotVid(req.body.user.email);
+    if (vid) {
+      user.hubspotVid = vid;
+    }
     await user.save();
     res.status(201).json({ user: user.toUserJSONFor() });
   } catch (error) {

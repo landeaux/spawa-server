@@ -4,9 +4,9 @@ const hubspot = require('../hubspot');
 
 const User = mongoose.model('User');
 
-async function getHubspotVid(user) {
+async function getHubspotVid(email) {
   try {
-    const { vid } = await hubspot.contacts.getByEmail(user.email);
+    const { vid } = await hubspot.contacts.getByEmail(email);
     return vid;
   } catch ({ statusCode }) {
     if (statusCode === 404) {
@@ -14,11 +14,7 @@ async function getHubspotVid(user) {
         properties: [
           {
             property: 'email',
-            value: user.email,
-          },
-          {
-            property: 'company',
-            value: user.company,
+            value: email,
           },
         ],
       };
@@ -37,9 +33,17 @@ exports.signup = async (req, res, next) => {
     user.username = req.body.user.username;
     user.setPassword(req.body.user.password);
     user.company = req.body.user.company;
-    const vid = await getHubspotVid(req.body.user);
+    const vid = await getHubspotVid(req.body.user.email);
     if (vid) {
       user.hubspotVid = vid;
+      await hubspot.contacts.update(vid, {
+        properties: [
+          {
+            property: 'company',
+            value: req.body.user.company,
+          },
+        ],
+      });
     }
     await user.save();
     res.status(201).json({ user: user.toAuthJSON() });
@@ -80,9 +84,17 @@ exports.createUser = async (req, res, next) => {
     user.role = req.body.user.role;
     user.company = req.body.user.company;
     if (req.body.user.state) user.state = req.body.user.state;
-    const vid = await getHubspotVid(req.body.user);
+    const vid = await getHubspotVid(req.body.user.email);
     if (vid) {
       user.hubspotVid = vid;
+      await hubspot.contacts.update(vid, {
+        properties: [
+          {
+            property: 'company',
+            value: req.body.user.company,
+          },
+        ],
+      });
     }
     await user.save();
     res.status(201).json({ user: user.toUserJSONFor() });
@@ -141,12 +153,28 @@ exports.updateUser = async (req, res, next) => {
     }
     if (typeof req.body.user.email !== 'undefined') {
       user.email = req.body.user.email;
+      await hubspot.contacts.update(user.hubspotVid, {
+        properties: [
+          {
+            property: 'email',
+            value: req.body.user.email,
+          },
+        ],
+      });
     }
     if (typeof req.body.user.password !== 'undefined') {
       user.setPassword(req.body.user.password);
     }
     if (typeof req.body.user.company !== 'undefined') {
       user.company = req.body.user.company;
+      await hubspot.contacts.update(user.hubspotVid, {
+        properties: [
+          {
+            property: 'company',
+            value: req.body.user.company,
+          },
+        ],
+      });
     }
 
     await user.save();
@@ -170,6 +198,14 @@ exports.updateUserById = async (req, res, next) => {
     }
     if (typeof req.body.user.email !== 'undefined') {
       user.email = req.body.user.email;
+      await hubspot.contacts.update(user.hubspotVid, {
+        properties: [
+          {
+            property: 'email',
+            value: req.body.user.email,
+          },
+        ],
+      });
     }
     if (typeof req.body.user.password !== 'undefined') {
       user.setPassword(req.body.user.password);
@@ -182,6 +218,14 @@ exports.updateUserById = async (req, res, next) => {
     }
     if (typeof req.body.user.company !== 'undefined') {
       user.company = req.body.user.company;
+      await hubspot.contacts.update(user.hubspotVid, {
+        properties: [
+          {
+            property: 'company',
+            value: req.body.user.company,
+          },
+        ],
+      });
     }
     if (typeof req.body.user.state !== 'undefined') {
       user.state = req.body.user.state;

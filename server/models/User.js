@@ -59,7 +59,7 @@ const UserSchema = new mongoose.Schema({
     ref: 'PitchDeck',
     required: false,
   },
-  hubspotContactVid: {
+  hubspotVid: {
     type: Number,
     required: false,
     validate: {
@@ -115,7 +115,7 @@ UserSchema.methods.toAuthJSON = function toAuthJSON() {
     token: this.generateJWT(),
     updatedAt: this.updatedAt,
     username: this.username,
-    hubspotContactVid: this.hubspotContactVid,
+    hubspotVid: this.hubspotVid,
   };
   if (user.role === 'founder') delete user.reviews;
   if (user.role !== 'founder') delete user.pitchDeck;
@@ -134,7 +134,7 @@ UserSchema.methods.toUserJSONFor = function toUserJSONFor() {
     state: this.state,
     updatedAt: this.updatedAt,
     username: this.username,
-    hubspotContactVid: this.hubspotContactVid,
+    hubspotVid: this.hubspotVid,
   };
   if (user.role === 'founder') delete user.reviews;
   if (user.role !== 'founder') delete user.pitchDeck;

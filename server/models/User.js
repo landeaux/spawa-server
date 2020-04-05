@@ -3,6 +3,7 @@ const uniqueValidator = require('mongoose-unique-validator');
 const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 const { secret } = require('../config');
+const hubspot = require('../hubspot');
 
 const UserSchema = new mongoose.Schema({
   username: {
@@ -82,6 +83,30 @@ const UserSchema = new mongoose.Schema({
 
 // validate uniqueness of fields with "unique: true" option
 UserSchema.plugin(uniqueValidator, { message: 'is already taken.' });
+
+// Synchronizes the user's email with their hubspot contact's email prop
+UserSchema.methods.syncEmail = async function syncEmail() {
+  await hubspot.contacts.update(this.hubspotVid, {
+    properties: [
+      {
+        property: 'email',
+        value: this.email,
+      },
+    ],
+  });
+};
+
+// Synchronizes the user's company with their hubspot contact's company prop
+UserSchema.methods.syncCompany = async function syncCompany() {
+  await hubspot.contacts.update(this.hubspotVid, {
+    properties: [
+      {
+        property: 'company',
+        value: this.company,
+      },
+    ],
+  });
+};
 
 UserSchema.methods.setPassword = function setPassword(password) {
   this.salt = crypto.randomBytes(16).toString('hex');

@@ -71,6 +71,11 @@ const UserSchema = new mongoose.Schema({
       },
     },
   },
+  company: {
+    type: String,
+    required: [true, 'can\'t be blank'],
+    unique: true,
+  },
   hash: String,
   salt: String,
 }, { timestamps: true }); // this option creates createdAt and updatedAt fields
@@ -116,6 +121,7 @@ UserSchema.methods.toAuthJSON = function toAuthJSON() {
     updatedAt: this.updatedAt,
     username: this.username,
     hubspotVid: this.hubspotVid,
+    company: this.company,
   };
   if (user.role === 'founder') delete user.reviews;
   if (user.role !== 'founder') delete user.pitchDeck;
@@ -135,6 +141,7 @@ UserSchema.methods.toUserJSONFor = function toUserJSONFor() {
     updatedAt: this.updatedAt,
     username: this.username,
     hubspotVid: this.hubspotVid,
+    company: this.company,
   };
   if (user.role === 'founder') delete user.reviews;
   if (user.role !== 'founder') delete user.pitchDeck;

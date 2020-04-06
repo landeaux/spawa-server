@@ -1,6 +1,9 @@
 const router = require('express').Router();
 const auth = require('../auth');
-const { grantAccess } = require('../../controllers/accessController');
+const {
+  grantAccess,
+  grantOwnerAccess,
+} = require('../../controllers/accessController');
 
 const {
   createPitchDeck,
@@ -12,7 +15,7 @@ const {
 router.post('/pitchDecks', auth.required, grantAccess('createOwn', 'pitchdeck'), createPitchDeck);
 
 // Get pitch deck by ID
-router.get('/pitchDecks/:id', auth.required, grantAccess('readAny', 'pitchdeck'), getPitchDeckById);
+router.get('/pitchDecks/:id', auth.required, grantOwnerAccess('read', 'pitchdeck'), getPitchDeckById);
 
 // Get all pitch decks
 router.get('/pitchDecks', auth.required, grantAccess('readAny', 'pitchdeck'), getPitchDecks);

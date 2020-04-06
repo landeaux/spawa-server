@@ -26,11 +26,15 @@ exports.grantOwnerAccess = (action, resource) => async (req, res, next) => {
       const user = await User.findById(userId);
       if (!user) return req.sendStatus(400);
       if (resource === 'review') {
-        const { reviews } = user;
-        isOwner = reviews.includes(mongoose.Types.ObjectId(req.params.id));
+        if (user.reviews) {
+          const { reviews } = user;
+          isOwner = reviews.includes(mongoose.Types.ObjectId(req.params.id));
+        }
       } else if (resource === 'pitchdeck') {
-        const { pitchDeck } = user;
-        isOwner = pitchDeck.toString() === req.params.id;
+        if (user.pitchDeck) {
+          const { pitchDeck } = user;
+          isOwner = pitchDeck.toString() === req.params.id;
+        }
       }
     } else if (resource === 'user') {
       isOwner = req.payload.id === req.params.id;

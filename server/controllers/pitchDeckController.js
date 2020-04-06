@@ -1,18 +1,24 @@
 const mongoose = require('mongoose');
 
 const PitchDeck = mongoose.model('PitchDeck');
+const User = mongoose.model('User');
 
 // create Pitch Deck
 exports.createPitchDeck = async (req, res, next) => {
   try {
+    const ownerId = req.payload.id;
+    if (!mongoose.Types.ObjectId.isValid(ownerId)) return res.sendStatus(400);
+    const ownerDoc = await User.findById(ownerId);
+    if (!ownerDoc) return res.status(404).json({ errors: { owner: 'does not exist' } });
     const pitchDeck = new PitchDeck();
     pitchDeck.url = req.body.pitchDeck.url;
-    pitchDeck.owner = req.body.pitchDeck.owner;
-    pitchDeck.save();
-    res.status(201).json({ pitchDeck: pitchDeck.toPitchDeckJSON() });
+    pitchDeck.owner = ownerId;
+    const pitchDeckDoc = await pitchDeck.save();
+    ownerDoc.pitchDeck = pitchDeckDoc._id;
+    await ownerDoc.save();
+    return res.status(201).json({ pitchDeck: pitchDeck.toPitchDeckJSON() });
   } catch (error) {
-    console.log('error');
-    next(error);
+    return next(error);
   }
 };
 

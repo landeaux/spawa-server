@@ -16,6 +16,8 @@ const {
 router.post('/pitchDecks',
   auth.required,
   grantAccess('createOwn', 'pitchdeck'),
+  upload.single('pitchdeck'),
+  awsWorker.doUpload,
   createPitchDeck);
 
 // Get pitch deck by ID

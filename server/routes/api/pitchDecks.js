@@ -1,10 +1,11 @@
 const router = require('express').Router();
 const auth = require('../auth');
+const upload = require('../../config/multer.config');
+const awsWorker = require('../../controllers/aws.controller.js');
 const {
   grantAccess,
   grantOwnerAccess,
 } = require('../../controllers/accessController');
-
 const {
   createPitchDeck,
   getPitchDeckById,
@@ -19,5 +20,7 @@ router.get('/pitchDecks/:id', auth.required, grantOwnerAccess('read', 'pitchdeck
 
 // Get all pitch decks
 router.get('/pitchDecks', auth.required, grantAccess('readAny', 'pitchdeck'), getPitchDecks);
+
+router.post('/pitchDecks/upload', upload.single('file'), awsWorker.doUpload);
 
 module.exports = router;

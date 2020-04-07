@@ -11,7 +11,8 @@ exports.createPitchDeck = async (req, res, next) => {
     const ownerDoc = await User.findById(ownerId);
     if (!ownerDoc) return res.status(404).json({ errors: { owner: 'does not exist' } });
     const pitchDeck = new PitchDeck();
-    pitchDeck.url = req.body.pitchDeck.url;
+    pitchDeck.s3Key = req.awsResponse.Key;
+    pitchDeck.filename = req.file.originalname;
     pitchDeck.owner = ownerId;
     const pitchDeckDoc = await pitchDeck.save();
     ownerDoc.pitchDeck = pitchDeckDoc._id;

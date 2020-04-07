@@ -21,6 +21,12 @@ router.get('/pitchDecks/:id', auth.required, grantOwnerAccess('read', 'pitchdeck
 // Get all pitch decks
 router.get('/pitchDecks', auth.required, grantAccess('readAny', 'pitchdeck'), getPitchDecks);
 
-router.post('/pitchDecks/upload', upload.single('file'), awsWorker.doUpload);
+router.post('/pitchDecks/upload',
+  upload.single('pitchdeck'),
+  awsWorker.doUpload,
+  async (req, res) => res.json({
+    message: `File uploaded successfully! -> keyname = ${req.file.originalname}`,
+    ...req.awsResponse,
+  }));
 
 module.exports = router;

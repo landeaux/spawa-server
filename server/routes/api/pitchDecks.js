@@ -13,13 +13,22 @@ const {
 } = require('../../controllers/pitchDeckController');
 
 // Create pitch deck
-router.post('/pitchDecks', auth.required, grantAccess('createOwn', 'pitchdeck'), createPitchDeck);
+router.post('/pitchDecks',
+  auth.required,
+  grantAccess('createOwn', 'pitchdeck'),
+  createPitchDeck);
 
 // Get pitch deck by ID
-router.get('/pitchDecks/:id', auth.required, grantOwnerAccess('read', 'pitchdeck'), getPitchDeckById);
+router.get('/pitchDecks/:id',
+  auth.required,
+  grantOwnerAccess('read', 'pitchdeck'),
+  getPitchDeckById);
 
 // Get all pitch decks
-router.get('/pitchDecks', auth.required, grantAccess('readAny', 'pitchdeck'), getPitchDecks);
+router.get('/pitchDecks',
+  auth.required,
+  grantAccess('readAny', 'pitchdeck'),
+  getPitchDecks);
 
 router.post('/pitchDecks/upload',
   upload.single('pitchdeck'),

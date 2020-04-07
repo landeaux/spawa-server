@@ -32,12 +32,4 @@ router.get('/pitchDecks',
   grantAccess('readAny', 'pitchdeck'),
   getPitchDecks);
 
-router.post('/pitchDecks/upload',
-  upload.single('pitchdeck'),
-  awsWorker.doUpload,
-  async (req, res) => res.json({
-    message: `File uploaded successfully! -> keyname = ${req.file.originalname}`,
-    ...req.awsResponse,
-  }));
-
 module.exports = router;

@@ -1,9 +1,13 @@
 const mongoose = require('mongoose');
 
 const PitchDeckSchema = new mongoose.Schema({
-  url: {
-    type: String,
+  s3Key: {
     required: true,
+    type: String,
+  },
+  filename: {
+    required: true,
+    type: String,
   },
   rejectionCount: {
     type: Number,
@@ -32,11 +36,14 @@ const PitchDeckSchema = new mongoose.Schema({
 PitchDeckSchema.methods.toPitchDeckJSON = function toPitchDeckJSON() {
   return {
     id: this._id,
-    url: this.url,
+    s3Key: this.s3Key,
+    filename: this.filename,
     rejectionCount: this.rejectionCount,
     accepted: this.accepted,
     owner: this.owner,
     reviews: this.reviews,
+    createdAt: this.createdAt,
+    updatedAt: this.updatedAt,
   };
 };
 

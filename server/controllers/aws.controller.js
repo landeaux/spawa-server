@@ -22,7 +22,7 @@ exports.doDownload = (req, res) => {
   const { s3Client } = s3;
   const params = s3.downloadParams;
 
-  params.Key = req.params.filename;
+  params.Key = req.params.key;
 
   s3Client.getObject(params)
     .createReadStream()

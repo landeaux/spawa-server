@@ -41,6 +41,22 @@ exports.getPitchDeckById = async (req, res, next) => {
   }
 };
 
+// Get PitchDeck AWS S3 key for download
+exports.getPitchDeckS3Key = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(id)) return res.sendStatus(400);
+    const pitchDeck = await PitchDeck.findById(id);
+    if (!pitchDeck) {
+      return res.sendStatus(404); // pitch deck not found
+    }
+    req.params.key = pitchDeck.s3Key;
+    return next();
+  } catch (error) {
+    return next(error);
+  }
+};
+
 // Get all pitch decks
 exports.getPitchDecks = async (req, res, next) => {
   try {

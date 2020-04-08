@@ -32,4 +32,7 @@ router.get('/pitchDecks',
   grantAccess('readAny', 'pitchdeck'),
   getPitchDecks);
 
+router.get('/pitchDecks/download/:key',
+  awsWorker.doDownload);
+
 module.exports = router;

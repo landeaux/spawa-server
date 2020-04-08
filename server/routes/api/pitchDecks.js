@@ -9,6 +9,7 @@ const {
 const {
   createPitchDeck,
   getPitchDeckById,
+  getPitchDeckS3Key,
   getPitchDecks,
 } = require('../../controllers/pitchDeckController');
 
@@ -26,13 +27,16 @@ router.get('/pitchDecks/:id',
   grantOwnerAccess('read', 'pitchdeck'),
   getPitchDeckById);
 
+router.get('/pitchDecks/:id/download',
+  auth.required,
+  grantOwnerAccess('read', 'pitchdeck'),
+  getPitchDeckS3Key,
+  awsWorker.doDownload);
+
 // Get all pitch decks
 router.get('/pitchDecks',
   auth.required,
   grantAccess('readAny', 'pitchdeck'),
   getPitchDecks);
-
-router.get('/pitchDecks/download/:key',
-  awsWorker.doDownload);
 
 module.exports = router;

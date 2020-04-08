@@ -13,8 +13,14 @@ const uploadParams = {
   Body: null,
 };
 
+const downloadParams = {
+  Bucket: env.Bucket,
+  Key: '',
+};
+
 const s3 = {};
 s3.s3Client = s3Client;
 s3.uploadParams = uploadParams;
+s3.downloadParams = downloadParams;
 
 module.exports = s3;

@@ -17,3 +17,17 @@ exports.doUpload = (req, res, next) => {
     return next();
   });
 };
+
+exports.doDownload = (req, res) => {
+  const { s3Client } = s3;
+  const params = s3.downloadParams;
+
+  params.Key = req.params.filename;
+
+  s3Client.getObject(params)
+    .createReadStream()
+    .on('error', (err) => {
+      res.status(500).json({ error: `Error -> ${err}` });
+    })
+    .pipe(res);
+};

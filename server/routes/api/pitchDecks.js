@@ -27,6 +27,7 @@ router.get('/pitchDecks/:id',
   grantOwnerAccess('read', 'pitchdeck'),
   getPitchDeckById);
 
+// Download pitch deck by pitch deck id
 router.get('/pitchDecks/:id/download',
   auth.required,
   grantOwnerAccess('read', 'pitchdeck'),

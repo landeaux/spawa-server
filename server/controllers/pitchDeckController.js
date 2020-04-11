@@ -51,6 +51,7 @@ exports.getPitchDeckS3Key = async (req, res, next) => {
       return res.sendStatus(404); // pitch deck not found
     }
     req.params.key = pitchDeck.s3Key;
+    req.params.filename = pitchDeck.filename;
     return next();
   } catch (error) {
     return next(error);

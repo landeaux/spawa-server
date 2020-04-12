@@ -11,7 +11,8 @@ exports.createPitchDeck = async (req, res, next) => {
     const ownerDoc = await User.findById(ownerId);
     if (!ownerDoc) return res.status(404).json({ errors: { owner: 'does not exist' } });
     const pitchDeck = new PitchDeck();
-    pitchDeck.url = req.body.pitchDeck.url;
+    pitchDeck.s3Key = req.awsResponse.Key;
+    pitchDeck.filename = req.file.originalname;
     pitchDeck.owner = ownerId;
     const pitchDeckDoc = await pitchDeck.save();
     ownerDoc.pitchDeck = pitchDeckDoc._id;
@@ -35,6 +36,23 @@ exports.getPitchDeckById = async (req, res, next) => {
     return pitchDeck
       ? res.status(200).json({ pitchDeck: pitchDeck.toPitchDeckJSON() }) // pitch deck found
       : res.sendStatus(404); // pitch deck not found
+  } catch (error) {
+    return next(error);
+  }
+};
+
+// Get PitchDeck AWS S3 key for download
+exports.getPitchDeckS3Key = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(id)) return res.sendStatus(400);
+    const pitchDeck = await PitchDeck.findById(id);
+    if (!pitchDeck) {
+      return res.sendStatus(404); // pitch deck not found
+    }
+    req.params.key = pitchDeck.s3Key;
+    req.params.filename = pitchDeck.filename;
+    return next();
   } catch (error) {
     return next(error);
   }

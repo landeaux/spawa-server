@@ -226,6 +226,36 @@ exports.updateUserById = async (req, res, next) => {
   }
 };
 
+// Update current user
+exports.updateUserState = async (req, res, next) => {
+  try {
+    const { id } = req.payload;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.sendStatus(400);
+    }
+
+    const user = await User.findById(id);
+    if (!user) {
+      return res.sendStatus(404);
+    }
+
+    if (req.body.user && req.body.user.state) {
+      user.state = req.body.user.state;
+      await user.save();
+
+      return res.status(200).json({ user: user.toAuthJSON() });
+    }
+    return res.status(400).json({
+      errors: {
+        state: 'missing `state`',
+      },
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
 // Suspend user by id
 exports.suspendUserById = async (req, res, next) => {
   try {

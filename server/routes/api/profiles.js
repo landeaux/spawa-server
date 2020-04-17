@@ -6,8 +6,14 @@ const {
   getProfileByUsername,
 } = require('../../controllers/profileController');
 
-router.get('/', auth.required, grantAccess('readOwn', 'profile'), getProfile);
+router.get('/',
+  auth.required,
+  grantAccess('readOwn', 'profile'),
+  getProfile);
 
-router.get('/:username', auth.required, grantAccess('readAny', 'profile'), getProfileByUsername);
+router.get('/:username',
+  auth.required,
+  grantAccess('readAny', 'profile'),
+  getProfileByUsername);
 
 module.exports = router;

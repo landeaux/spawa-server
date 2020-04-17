@@ -60,11 +60,11 @@ async function getProfileHelper(req, res, next, user) {
 
     // if the user already has HubSpot contact vid stored, use that to fetch
     // otherwise, fetch by user email (less reliable, since email is mutable)
-    if (user.hubspotContactVid) {
-      contact = await hubspot.contacts.getById(user.hubspotContactVid);
+    if (user.hubspotVid) {
+      contact = await hubspot.contacts.getById(user.hubspotVid);
     } else {
       contact = await hubspot.contacts.getByEmail(user.email);
-      user.hubspotContactVid = contact.vid;
+      user.hubspotVid = contact.vid;
       await user.save();
     }
     if (!contact) { return res.sendStatus(404); }

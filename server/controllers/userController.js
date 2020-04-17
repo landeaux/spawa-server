@@ -1,34 +1,55 @@
 const mongoose = require('mongoose');
 const passport = require('passport');
-const { roles } = require('../roles');
+const hubspot = require('../hubspot');
 
 const User = mongoose.model('User');
 
-exports.grantAccess = (action, resource) => async (req, res, next) => {
+async function getHubspotVid(email) {
   try {
-    const permission = roles.can(req.payload.role)[action](resource);
-    if (!permission.granted) {
-      return res.status(401).json({
-        error: 'You don\'t have enough permission to perform this action',
-      });
+    const { vid } = await hubspot.contacts.getByEmail(email);
+    return vid;
+  } catch ({ statusCode }) {
+    if (statusCode === 404) {
+      const contactObj = {
+        properties: [
+          {
+            property: 'email',
+            value: email,
+          },
+        ],
+      };
+      const { vid } = await hubspot.contacts.create(contactObj);
+      return vid;
     }
-    return next();
-  } catch (error) {
-    return next(error);
+    return null;
   }
-};
+}
 
 // User signup
 exports.signup = async (req, res, next) => {
   try {
     const user = new User();
-    user.username = req.body.user.username;
+
     user.email = req.body.user.email;
+    user.username = req.body.user.username;
     user.setPassword(req.body.user.password);
+    user.company = req.body.user.company;
+
+    const vid = await getHubspotVid(req.body.user.email);
+    if (vid) {
+      user.hubspotVid = vid;
+    }
+
     await user.save();
-    res.status(201).json({ user: user.toAuthJSON() });
+
+    // Only sync with HubSpot if user saves successfully and we have a valid vid
+    if (vid) {
+      await user.syncCompany();
+    }
+
+    return res.status(201).json({ user: user.toAuthJSON() });
   } catch (error) {
-    next(error);
+    return next(error);
   }
 };
 
@@ -57,16 +78,30 @@ exports.login = (req, res, next) => {
 exports.createUser = async (req, res, next) => {
   try {
     const user = new User();
+
     user.email = req.body.user.email;
     user.username = req.body.user.username;
     user.setPassword(req.body.user.password);
     user.active = req.body.user.active;
     user.role = req.body.user.role;
+    user.company = req.body.user.company;
     if (req.body.user.state) user.state = req.body.user.state;
+
+    const vid = await getHubspotVid(req.body.user.email);
+    if (vid) {
+      user.hubspotVid = vid;
+    }
+
     await user.save();
-    res.status(201).json({ user: user.toUserJSONFor() });
+
+    // Only sync with HubSpot if user saves successfully and we have a valid vid
+    if (vid) {
+      await user.syncCompany();
+    }
+
+    return res.status(201).json({ user: user.toUserJSONFor() });
   } catch (error) {
-    next(error);
+    return next(error);
   }
 };
 
@@ -124,14 +159,20 @@ exports.updateUser = async (req, res, next) => {
     if (typeof req.body.user.password !== 'undefined') {
       user.setPassword(req.body.user.password);
     }
-    if (typeof req.body.user.bio !== 'undefined') {
-      user.bio = req.body.user.bio;
-    }
-    if (typeof req.body.user.image !== 'undefined') {
-      user.image = req.body.user.image;
+    if (typeof req.body.user.company !== 'undefined') {
+      user.company = req.body.user.company;
     }
 
     await user.save();
+
+    // Only synchronize with HubSpot if the user is saved successfully
+    if (typeof req.body.user.email !== 'undefined') {
+      await user.syncEmail();
+    }
+    if (typeof req.body.user.company !== 'undefined') {
+      await user.syncCompany();
+    }
+
     return res.status(200).json({ user: user.toAuthJSON() });
   } catch (error) {
     return next(error);
@@ -159,20 +200,26 @@ exports.updateUserById = async (req, res, next) => {
     if (typeof req.body.user.role !== 'undefined') {
       user.role = req.body.user.role;
     }
-    if (typeof req.body.user.bio !== 'undefined') {
-      user.bio = req.body.user.bio;
-    }
-    if (typeof req.body.user.image !== 'undefined') {
-      user.image = req.body.user.image;
-    }
     if (typeof req.body.user.active !== 'undefined') {
       user.active = req.body.user.active;
+    }
+    if (typeof req.body.user.company !== 'undefined') {
+      user.company = req.body.user.company;
     }
     if (typeof req.body.user.state !== 'undefined') {
       user.state = req.body.user.state;
     }
 
     await user.save();
+
+    // Only synchronize with HubSpot if the user is saved successfully
+    if (typeof req.body.user.email !== 'undefined') {
+      await user.syncEmail();
+    }
+    if (typeof req.body.user.company !== 'undefined') {
+      await user.syncCompany();
+    }
+
     return res.status(200).json({ user: user.toUserJSONFor() });
   } catch (error) {
     return next(error);
@@ -215,6 +262,7 @@ exports.activateUserById = async (req, res, next) => {
 
 // Delete user
 exports.deleteUser = async (req, res, next) => {
+  // #todo Need to also delete a user's assets (pitchDeck, reviews, etc.)
   try {
     const { id } = req.params;
     if (!mongoose.Types.ObjectId.isValid(id)) {

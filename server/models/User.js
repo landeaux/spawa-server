@@ -3,6 +3,7 @@ const uniqueValidator = require('mongoose-unique-validator');
 const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 const { secret } = require('../config');
+const hubspot = require('../hubspot');
 
 const UserSchema = new mongoose.Schema({
   username: {
@@ -59,7 +60,7 @@ const UserSchema = new mongoose.Schema({
     ref: 'PitchDeck',
     required: false,
   },
-  hubspotContactVid: {
+  hubspotVid: {
     type: Number,
     required: false,
     validate: {
@@ -71,12 +72,41 @@ const UserSchema = new mongoose.Schema({
       },
     },
   },
+  company: {
+    type: String,
+    required: [true, 'can\'t be blank'],
+    unique: true,
+  },
   hash: String,
   salt: String,
 }, { timestamps: true }); // this option creates createdAt and updatedAt fields
 
 // validate uniqueness of fields with "unique: true" option
 UserSchema.plugin(uniqueValidator, { message: 'is already taken.' });
+
+// Synchronizes the user's email with their hubspot contact's email prop
+UserSchema.methods.syncEmail = async function syncEmail() {
+  await hubspot.contacts.update(this.hubspotVid, {
+    properties: [
+      {
+        property: 'email',
+        value: this.email,
+      },
+    ],
+  });
+};
+
+// Synchronizes the user's company with their hubspot contact's company prop
+UserSchema.methods.syncCompany = async function syncCompany() {
+  await hubspot.contacts.update(this.hubspotVid, {
+    properties: [
+      {
+        property: 'company',
+        value: this.company,
+      },
+    ],
+  });
+};
 
 UserSchema.methods.setPassword = function setPassword(password) {
   this.salt = crypto.randomBytes(16).toString('hex');
@@ -115,7 +145,8 @@ UserSchema.methods.toAuthJSON = function toAuthJSON() {
     token: this.generateJWT(),
     updatedAt: this.updatedAt,
     username: this.username,
-    hubspotContactVid: this.hubspotContactVid,
+    hubspotVid: this.hubspotVid,
+    company: this.company,
   };
   if (user.role === 'founder') delete user.reviews;
   if (user.role !== 'founder') delete user.pitchDeck;
@@ -134,7 +165,8 @@ UserSchema.methods.toUserJSONFor = function toUserJSONFor() {
     state: this.state,
     updatedAt: this.updatedAt,
     username: this.username,
-    hubspotContactVid: this.hubspotContactVid,
+    hubspotVid: this.hubspotVid,
+    company: this.company,
   };
   if (user.role === 'founder') delete user.reviews;
   if (user.role !== 'founder') delete user.pitchDeck;

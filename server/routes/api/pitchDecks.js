@@ -8,6 +8,7 @@ const {
 } = require('../../controllers/accessController');
 const {
   createPitchDeck,
+  getActivePitchDecks,
   getPitchDeckById,
   getPitchDeckS3Key,
   getPitchDecks,
@@ -20,6 +21,12 @@ router.post('/pitchDecks',
   upload.single('pitchdeck'),
   awsWorker.doUpload,
   createPitchDeck);
+
+// Get all active pitch decks
+router.get('/pitchDecks/active',
+  auth.required,
+  grantAccess('readAny', 'pitchdeck'),
+  getActivePitchDecks);
 
 // Get pitch deck by ID
 router.get('/pitchDecks/:id',

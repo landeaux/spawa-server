@@ -13,6 +13,7 @@ const {
   getUsers,
   updateUser,
   updateUserById,
+  updateUserState,
   deleteUser,
   suspendUserById,
   activateUserById,
@@ -53,6 +54,12 @@ router.get('/users',
 router.put('/user',
   auth.required,
   updateUser);
+
+// Update user state
+router.put('/user/state',
+  auth.required,
+  grantAccess('updateOwn', 'user'),
+  updateUserState);
 
 // Update user by ID
 router.put('/user/:id',

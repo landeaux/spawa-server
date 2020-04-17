@@ -23,6 +23,26 @@ exports.createPitchDeck = async (req, res, next) => {
   }
 };
 
+// Get all active pitch decks
+exports.getActivePitchDecks = async (req, res, next) => {
+  try {
+    const founders = await User.find({ role: 'founder' })
+      .populate('pitchDeck')
+      .lean()
+      .exec();
+    if (!founders) return res.sendStatus(404);
+    const pitchDecks = founders
+      .filter((founder) => founder.pitchDeck && !founder.pitchDeck.accepted)
+      .map((founder) => ({
+        ...founder.pitchDeck,
+        company: founder.company,
+      }));
+    return res.status(200).json({ pitchDecks });
+  } catch (error) {
+    return next(error);
+  }
+};
+
 // Get PitchDeck by ID
 exports.getPitchDeckById = async (req, res, next) => {
   try {

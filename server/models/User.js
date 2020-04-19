@@ -75,7 +75,6 @@ const UserSchema = new mongoose.Schema({
   company: {
     type: String,
     required: [true, 'can\'t be blank'],
-    unique: true,
   },
   hash: String,
   salt: String,

@@ -1,5 +1,12 @@
 const mongoose = require('mongoose');
 
+/**
+ * Statuses
+ */
+const UNDER_REVIEW = 'UNDER_REVIEW';
+const ACCEPTED = 'ACCEPTED';
+const REJECTED = 'REJECTED';
+
 const PitchDeckSchema = new mongoose.Schema({
   s3Key: {
     required: true,
@@ -9,17 +16,14 @@ const PitchDeckSchema = new mongoose.Schema({
     required: true,
     type: String,
   },
-  rejectionCount: {
-    type: Number,
-    default: 0,
-    validate: {
-      validator: (value) => Number.isInteger(value) && value >= 0,
-      message: (props) => `${props.value} is not a valid rejection count!`,
-    },
-  },
-  accepted: {
-    type: Boolean,
-    default: false,
+  status: {
+    type: String,
+    default: UNDER_REVIEW,
+    enum: [
+      UNDER_REVIEW,
+      ACCEPTED,
+      REJECTED,
+    ],
   },
   reviews: [{
     type: mongoose.Schema.Types.ObjectId,
@@ -38,13 +42,20 @@ PitchDeckSchema.methods.toPitchDeckJSON = function toPitchDeckJSON() {
     id: this._id,
     s3Key: this.s3Key,
     filename: this.filename,
-    rejectionCount: this.rejectionCount,
-    accepted: this.accepted,
+    status: this.status,
     owner: this.owner,
     reviews: this.reviews,
     createdAt: this.createdAt,
     updatedAt: this.updatedAt,
   };
+};
+
+PitchDeckSchema.methods.setAccepted = function setAccepted() {
+  this.status = ACCEPTED;
+};
+
+PitchDeckSchema.methods.setRejected = function setRejected() {
+  this.status = REJECTED;
 };
 
 // register the schema within mongoose

@@ -5,6 +5,29 @@ const jwt = require('jsonwebtoken');
 const { secret } = require('../config');
 const hubspot = require('../hubspot');
 
+/**
+ * The default total number of attempts allowed for a Founder to submit a
+ * pitch deck
+ */
+const NUM_PITCHDECK_ATTEMPTS_ALLOWED = 3;
+
+/**
+ * The number of days to allow for resubmitting a pitch deck before it is locked
+ */
+const PITCH_DECK_GRACE_PERIOD = 1;
+
+/**
+ * User states
+ */
+const SUBMIT_EAPP = 'submit_eapp';
+const WATCH_PITCH_VIDEO = 'watch_pitch_video';
+const TAKE_PITCH_QUIZ = 'take_pitch_quiz';
+const SUBMIT_PITCH_DECK = 'submit_pitch_deck';
+const PITCH_DECK_REVIEW = 'pitch_deck_review';
+const BOOK_PITCH_DATE = 'book_pitch_date';
+const PITCH_ACCEPTED = 'pitch_accepted';
+const PITCH_CANCELLED = 'pitch_cancelled';
+
 const UserSchema = new mongoose.Schema({
   username: {
     type: String,
@@ -40,14 +63,14 @@ const UserSchema = new mongoose.Schema({
     type: String,
     default: 'submit_eapp',
     enum: [
-      'submit_eapp', // initial state
-      'watch_pitch_video',
-      'take_pitch_quiz',
-      'submit_pitch_deck',
-      'pitch_deck_review',
-      'book_pitch_date',
-      'pitch_accepted', // final state
-      'pitch_cancelled', // final state
+      SUBMIT_EAPP, // initial state
+      WATCH_PITCH_VIDEO,
+      TAKE_PITCH_QUIZ,
+      SUBMIT_PITCH_DECK,
+      PITCH_DECK_REVIEW,
+      BOOK_PITCH_DATE,
+      PITCH_ACCEPTED, // final state
+      PITCH_CANCELLED, // final state
     ],
   },
   reviews: [{
@@ -58,6 +81,21 @@ const UserSchema = new mongoose.Schema({
   pitchDeck: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'PitchDeck',
+    required: false,
+  },
+  pitchDeckAttemptsLeft: {
+    type: Number,
+    required: false,
+    default: NUM_PITCHDECK_ATTEMPTS_ALLOWED,
+    validator(value) {
+      return Number.isInteger(value) && value >= 0;
+    },
+    message(props) {
+      return `${props.value} must be a non-negative integer.`;
+    },
+  },
+  pitchDeckLockDate: {
+    type: Date,
     required: false,
   },
   hubspotVid: {
@@ -138,6 +176,9 @@ UserSchema.methods.toAuthJSON = function toAuthJSON() {
     email: this.email,
     id: this._id,
     pitchDeck: this.pitchDeck,
+    pitchDeckAttemptsLeft: this.pitchDeckAttemptsLeft,
+    pitchDeckLockDate: this.pitchDeckLockDate,
+    pitchDeckLocked: this.isPitchDeckLocked(),
     reviews: this.reviews,
     role: this.role,
     state: this.state,
@@ -148,7 +189,12 @@ UserSchema.methods.toAuthJSON = function toAuthJSON() {
     company: this.company,
   };
   if (user.role === 'founder') delete user.reviews;
-  if (user.role !== 'founder') delete user.pitchDeck;
+  if (user.role !== 'founder') {
+    delete user.pitchDeck;
+    delete user.pitchDeckAttemptsLeft;
+    delete user.pitchDeckLockDate;
+    delete user.pitchDeckLocked;
+  }
   return user;
 };
 
@@ -159,6 +205,9 @@ UserSchema.methods.toUserJSONFor = function toUserJSONFor() {
     email: this.email,
     id: this._id,
     pitchDeck: this.pitchDeck,
+    pitchDeckAttemptsLeft: this.pitchDeckAttemptsLeft,
+    pitchDeckLockDate: this.pitchDeckLockDate,
+    pitchDeckLocked: this.isPitchDeckLocked(),
     reviews: this.reviews,
     role: this.role,
     state: this.state,
@@ -168,8 +217,28 @@ UserSchema.methods.toUserJSONFor = function toUserJSONFor() {
     company: this.company,
   };
   if (user.role === 'founder') delete user.reviews;
-  if (user.role !== 'founder') delete user.pitchDeck;
+  if (user.role !== 'founder') {
+    delete user.pitchDeck;
+    delete user.pitchDeckAttemptsLeft;
+    delete user.pitchDeckLockDate;
+    delete user.pitchDeckLocked;
+  }
   return user;
+};
+
+UserSchema.methods.decrementPitchDeckAttemptsLeft = function pitchDeckAttemptsLeft() {
+  this.pitchDeckAttemptsLeft -= 1;
+};
+
+UserSchema.methods.isPitchDeckLocked = function isPitchDeckLocked() {
+  return this.pitchDeckLockDate && this.pitchDeckLockDate < Date.now();
+};
+
+UserSchema.methods.setPitchDeckLockDate = function setPitchDeckLockDate() {
+  const today = new Date();
+  const exp = new Date(today);
+  exp.setDate(today.getDate() + PITCH_DECK_GRACE_PERIOD);
+  this.pitchDeckLockDate = exp;
 };
 
 // register the schema within mongoose

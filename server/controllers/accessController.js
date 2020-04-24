@@ -37,7 +37,11 @@ exports.grantOwnerAccess = (action, resource) => async (req, res, next) => {
         }
       }
     } else if (resource === 'user') {
-      isOwner = req.payload.id === req.params.id;
+      if (Object.prototype.hasOwnProperty.call(req.params, 'id')) {
+        isOwner = req.payload.id === req.params.id;
+      } else if (Object.prototype.hasOwnProperty.call(req.params, 'username')) {
+        isOwner = req.payload.username === req.params.username;
+      }
     }
     const possession = isOwner
       ? 'Own'

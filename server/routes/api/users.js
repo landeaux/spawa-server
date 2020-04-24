@@ -9,6 +9,7 @@ const {
   login,
   createUser,
   getUser,
+  getUserByUsername,
   getUserById,
   getUsers,
   updateUser,
@@ -37,6 +38,12 @@ router.post('/user',
 router.get('/user',
   auth.required,
   getUser);
+
+// Get user by username
+router.get('/user/username/:username',
+  auth.required,
+  grantOwnerAccess('read', 'user'),
+  getUserByUsername);
 
 // Get user by ID
 router.get('/user/:id',

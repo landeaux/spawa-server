@@ -118,6 +118,20 @@ exports.getUser = async (req, res, next) => {
   }
 };
 
+// Get user by username
+exports.getUserByUsername = async (req, res, next) => {
+  try {
+    const { username } = req.params;
+    const user = await User.findOne({ username });
+    console.log(user);
+    return user
+      ? res.status(200).json({ user: user.toUserJSONFor() }) // user found
+      : res.status(404).json({ errors: { [username]: 'not found' } }); // user not found
+  } catch (error) {
+    return next(error);
+  }
+};
+
 // Get user by ID
 exports.getUserById = async (req, res, next) => {
   try {

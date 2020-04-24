@@ -3,20 +3,52 @@ const mongoose = require('mongoose');
 const PitchDeck = mongoose.model('PitchDeck');
 const User = mongoose.model('User');
 
-// create Pitch Deck
+// Validate the pitch deck owner before attempting to upload/create pitch deck
+exports.validatePitchDeckOwner = async (req, res, next) => {
+  try {
+    // Check that we have a valid ObjectId
+    const ownerId = req.payload.id;
+    if (!mongoose.Types.ObjectId.isValid(ownerId)) {
+      return res.sendStatus(400);
+    }
+
+    // Check that the owner (User) actually exists in the database
+    const ownerDoc = await User.findById(ownerId);
+    if (!ownerDoc) {
+      return res.status(404).json({
+        errors: {
+          owner: 'does not exist',
+        },
+      });
+    }
+
+    // Check the grace period updating pitch deck has not passed
+    if (ownerDoc.isPitchDeckLocked()) {
+      return res.status(401).json({
+        error: 'You don\'t have enough permission to perform this action',
+      });
+    }
+
+    // Finally, pin the owner doc to the request to use in next middleware
+    req.ownerDoc = ownerDoc;
+
+    return next();
+  } catch (error) {
+    return next(error);
+  }
+};
+
+// Create Pitch Deck
 exports.createPitchDeck = async (req, res, next) => {
   try {
-    const ownerId = req.payload.id;
-    if (!mongoose.Types.ObjectId.isValid(ownerId)) return res.sendStatus(400);
-    const ownerDoc = await User.findById(ownerId);
-    if (!ownerDoc) return res.status(404).json({ errors: { owner: 'does not exist' } });
     const pitchDeck = new PitchDeck();
     pitchDeck.s3Key = req.awsResponse.Key;
     pitchDeck.filename = req.file.originalname;
-    pitchDeck.owner = ownerId;
+    pitchDeck.owner = req.ownerDoc.id;
     const pitchDeckDoc = await pitchDeck.save();
-    ownerDoc.pitchDeck = pitchDeckDoc._id;
-    await ownerDoc.save();
+    req.ownerDoc.pitchDeck = pitchDeckDoc._id;
+    req.ownerDoc.setPitchDeckLockDate();
+    await req.ownerDoc.save();
     return res.status(201).json({ pitchDeck: pitchDeck.toPitchDeckJSON() });
   } catch (error) {
     return next(error);

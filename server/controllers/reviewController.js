@@ -112,3 +112,21 @@ exports.deleteReview = async (req, res, next) => {
     return next(error);
   }
 };
+
+// Get reviews by owner ID
+exports.getReviewsByOwnerId = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.sendStatus(400);
+    }
+    const userDoc = await User.findById(id);
+    if (!userDoc) {
+      return res.sendStatus(404);
+    }
+    const reviewDocs = await Review.find({ owner: id });
+    return res.status(200).json(reviewDocs);
+  } catch (error) {
+    return next(error);
+  }
+};

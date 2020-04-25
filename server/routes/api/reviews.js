@@ -5,6 +5,7 @@ const {
   getReviewById,
   getReviews,
   deleteReview,
+  getReviewsByOwnerId,
 } = require('../../controllers/reviewController');
 const {
   grantAccess,
@@ -34,5 +35,11 @@ router.delete('/reviews/:id',
   auth.required,
   grantOwnerAccess('delete', 'review'),
   deleteReview);
+
+// Get all reviews by Owner ID
+router.get('/reviews/owner/:id',
+  auth.required,
+  grantOwnerAccess('read', 'user'),
+  getReviewsByOwnerId);
 
 module.exports = router;

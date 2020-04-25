@@ -130,3 +130,20 @@ exports.getReviewsByOwnerId = async (req, res, next) => {
     return next(error);
   }
 };
+
+exports.getReviewsByPitchDecksId = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.sendStatus(400);
+    }
+    const pitchDoc = await PitchDeck.findById(id);
+    if (!pitchDoc) {
+      return res.sendStatus(404);
+    }
+    const reviewDocs = await Review.find({ pitchDeck: id });
+    return res.status(200).json(reviewDocs);
+  } catch (error) {
+    return next(error);
+  }
+};

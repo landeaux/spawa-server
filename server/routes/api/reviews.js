@@ -6,6 +6,7 @@ const {
   getReviews,
   deleteReview,
   getReviewsByOwnerId,
+  getReviewsByPitchDecksId,
 } = require('../../controllers/reviewController');
 const {
   grantAccess,
@@ -41,5 +42,11 @@ router.get('/reviews/owner/:id',
   auth.required,
   grantOwnerAccess('read', 'user'),
   getReviewsByOwnerId);
+
+// Get all reviewed pitchdesks by ID
+router.get('/reviews/pitchdeck/:id',
+  auth.required,
+  grantOwnerAccess('read', 'pitchdeck'),
+  getReviewsByPitchDecksId);
 
 module.exports = router;

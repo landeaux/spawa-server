@@ -18,12 +18,6 @@ router.post('/reviews',
   grantAccess('createOwn', 'review'),
   createReview);
 
-// Get all reviews by ID
-router.get('/reviews/owner/:id',
-  // auth.required,
-  // grantOwnerAccess('read', 'review'),
-  getReviewsByOwnerId);
-
 // Get review by ID
 router.get('/reviews/:id',
   auth.required,
@@ -41,5 +35,11 @@ router.delete('/reviews/:id',
   auth.required,
   grantOwnerAccess('delete', 'review'),
   deleteReview);
+
+// Get all reviews by Owner ID
+router.get('/reviews/owner/:id',
+  auth.required,
+  grantOwnerAccess('read', 'user'),
+  getReviewsByOwnerId);
 
 module.exports = router;

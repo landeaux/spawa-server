@@ -8,7 +8,7 @@ const User = mongoose.model('User');
 exports.createReview = async (req, res, next) => {
   try {
     const review = new Review();
-    review.owner = req.body.review.owner;
+    review.owner = req.payload.id;
     review.pitchDeck = req.body.review.pitchDeck;
     review.reviewerName = req.body.review.reviewerName;
     review.isProblemStatementPresent = req.body.review.isProblemStatementPresent;
@@ -30,7 +30,7 @@ exports.createReview = async (req, res, next) => {
     const pitchDeckDoc = await PitchDeck.findById(req.body.review.pitchDeck);
     pitchDeckDoc.reviews.push(reviewDoc._id);
     await pitchDeckDoc.save();
-    const userDoc = await User.findById(req.body.review.owner);
+    const userDoc = await User.findById(req.payload.id);
     userDoc.reviews.push(reviewDoc._id);
     await userDoc.save();
     return res.status(201).json({ review: review.toReviewJSON() });

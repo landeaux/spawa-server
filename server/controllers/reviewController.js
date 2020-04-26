@@ -8,7 +8,7 @@ const User = mongoose.model('User');
 exports.createReview = async (req, res, next) => {
   try {
     const review = new Review();
-    review.owner = req.body.review.owner;
+    review.owner = req.payload.id;
     review.pitchDeck = req.body.review.pitchDeck;
     review.reviewerName = req.body.review.reviewerName;
     review.isProblemStatementPresent = req.body.review.isProblemStatementPresent;
@@ -30,7 +30,7 @@ exports.createReview = async (req, res, next) => {
     const pitchDeckDoc = await PitchDeck.findById(req.body.review.pitchDeck);
     pitchDeckDoc.reviews.push(reviewDoc._id);
     await pitchDeckDoc.save();
-    const userDoc = await User.findById(req.body.review.owner);
+    const userDoc = await User.findById(req.payload.id);
     userDoc.reviews.push(reviewDoc._id);
     await userDoc.save();
     return res.status(201).json({ review: review.toReviewJSON() });
@@ -108,6 +108,41 @@ exports.deleteReview = async (req, res, next) => {
       ? 204 // No Content
       : 410; // Gone
     return res.sendStatus(STATUS_CODE);
+  } catch (error) {
+    return next(error);
+  }
+};
+
+// Get reviews by owner ID
+exports.getReviewsByOwnerId = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.sendStatus(400);
+    }
+    const userDoc = await User.findById(id);
+    if (!userDoc) {
+      return res.sendStatus(404);
+    }
+    const reviewDocs = await Review.find({ owner: id });
+    return res.status(200).json(reviewDocs);
+  } catch (error) {
+    return next(error);
+  }
+};
+
+exports.getReviewsByPitchDecksId = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.sendStatus(400);
+    }
+    const pitchDoc = await PitchDeck.findById(id);
+    if (!pitchDoc) {
+      return res.sendStatus(404);
+    }
+    const reviewDocs = await Review.find({ pitchDeck: id });
+    return res.status(200).json(reviewDocs);
   } catch (error) {
     return next(error);
   }

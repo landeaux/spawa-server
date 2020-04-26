@@ -147,3 +147,71 @@ exports.getReviewsByPitchDecksId = async (req, res, next) => {
     return next(error);
   }
 };
+
+exports.updateReview = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.sendStatus(400);
+    }
+    const reviewDoc = await Review.findById(id);
+    if (!reviewDoc) {
+      return res.sendStatus(404);
+    }
+
+    // only update fields that were actually passed...
+    if (typeof req.body.review.reviewerName !== 'undefined') {
+      reviewDoc.reviewerName = req.body.review.reviewerName;
+    }
+    if (typeof req.body.review.isProblemStatementPresent !== 'undefined') {
+      reviewDoc.isProblemStatementPresent = req.body.review.isProblemStatementPresent;
+    }
+    if (typeof req.body.review.isSolutionDescriptionPresent !== 'undefined') {
+      reviewDoc.isSolutionDescriptionPresent = req.body.review.isSolutionDescriptionPresent;
+    }
+    if (typeof req.body.review.isMarketCompetitionPresent !== 'undefined') {
+      reviewDoc.isMarketCompetitionPresent = req.body.review.isMarketCompetitionPresent;
+    }
+    if (typeof req.body.review.isBusinessModelPresent !== 'undefined') {
+      reviewDoc.isBusinessModelPresent = req.body.review.isBusinessModelPresent;
+    }
+    if (typeof req.body.review.isTeamPresent !== 'undefined') {
+      reviewDoc.isTeamPresent = req.body.review.isTeamPresent;
+    }
+    if (typeof req.body.review.isAskPresent !== 'undefined') {
+      reviewDoc.isAskPresent = req.body.review.isAskPresent;
+    }
+    if (typeof req.body.review.isContactSlidePresent !== 'undefined') {
+      reviewDoc.isContactSlidePresent = req.body.review.isContactSlidePresent;
+    }
+    if (typeof req.body.review.problemStatementRating !== 'undefined') {
+      reviewDoc.problemStatementRating = req.body.review.problemStatementRating;
+    }
+    if (typeof req.body.review.solutionDescriptionRating !== 'undefined') {
+      reviewDoc.solutionDescriptionRating = req.body.review.solutionDescriptionRating;
+    }
+    if (typeof req.body.review.marketCompetitionRating !== 'undefined') {
+      reviewDoc.marketCompetitionRating = req.body.review.marketCompetitionRating;
+    }
+    if (typeof req.body.review.businessModelRating !== 'undefined') {
+      reviewDoc.businessModelRating = req.body.review.businessModelRating;
+    }
+    if (typeof req.body.review.teamRating !== 'undefined') {
+      reviewDoc.teamRating = req.body.review.teamRating;
+    }
+    if (typeof req.body.review.askRating !== 'undefined') {
+      reviewDoc.askRating = req.body.review.askRating;
+    }
+    if (typeof req.body.review.additionalComments !== 'undefined') {
+      reviewDoc.additionalComments = req.body.review.additionalComments;
+    }
+    if (typeof req.body.review.pitchReady !== 'undefined') {
+      reviewDoc.pitchReady = req.body.review.pitchReady;
+    }
+
+    await reviewDoc.save();
+    return res.status(200).json(reviewDoc);
+  } catch (error) {
+    return next(error);
+  }
+};

@@ -7,6 +7,7 @@ const {
   deleteReview,
   getReviewsByOwnerId,
   getReviewsByPitchDecksId,
+  updateReview,
 } = require('../../controllers/reviewController');
 const {
   grantAccess,
@@ -48,5 +49,11 @@ router.get('/reviews/pitchdeck/:id',
   auth.required,
   grantOwnerAccess('read', 'pitchdeck'),
   getReviewsByPitchDecksId);
+
+// Get all reviews for a pitchdeck by pitchdeck ID
+router.put('/reviews/:id',
+  // auth.required,
+  // grantOwnerAccess('update', 'review'),
+  updateReview);
 
 module.exports = router;

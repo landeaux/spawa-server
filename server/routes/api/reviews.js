@@ -43,7 +43,7 @@ router.get('/reviews/owner/:id',
   grantOwnerAccess('read', 'user'),
   getReviewsByOwnerId);
 
-// Get all reviewed pitchdesks by ID
+// Get all reviews for a pitchdeck by pitchdeck ID
 router.get('/reviews/pitchdeck/:id',
   auth.required,
   grantOwnerAccess('read', 'pitchdeck'),

@@ -6,17 +6,6 @@ const { secret } = require('../config');
 const hubspot = require('../hubspot');
 
 /**
- * The default total number of attempts allowed for a Founder to submit a
- * pitch deck
- */
-const NUM_PITCHDECK_ATTEMPTS_ALLOWED = 3;
-
-/**
- * The number of days to allow for resubmitting a pitch deck before it is locked
- */
-const PITCH_DECK_GRACE_PERIOD = 1;
-
-/**
  * User states
  */
 const SUBMIT_EAPP = 'submit_eapp';
@@ -81,21 +70,6 @@ const UserSchema = new mongoose.Schema({
   pitchDeck: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'PitchDeck',
-    required: false,
-  },
-  pitchDeckAttemptsLeft: {
-    type: Number,
-    required: false,
-    default: NUM_PITCHDECK_ATTEMPTS_ALLOWED,
-    validator(value) {
-      return Number.isInteger(value) && value >= 0;
-    },
-    message(props) {
-      return `${props.value} must be a non-negative integer.`;
-    },
-  },
-  pitchDeckLockDate: {
-    type: Date,
     required: false,
   },
   hubspotVid: {
@@ -172,73 +146,42 @@ UserSchema.methods.generateJWT = function generateJWT() {
 // get JSON representation of user to pass to front-end during authentication
 UserSchema.methods.toAuthJSON = function toAuthJSON() {
   const user = {
+    company: this.company,
     createdAt: this.createdAt,
     email: this.email,
+    hubspotVid: this.hubspotVid,
     id: this._id,
     pitchDeck: this.pitchDeck,
-    pitchDeckAttemptsLeft: this.pitchDeckAttemptsLeft,
-    pitchDeckLockDate: this.pitchDeckLockDate,
-    pitchDeckLocked: this.isPitchDeckLocked(),
     reviews: this.reviews,
     role: this.role,
     state: this.state,
     token: this.generateJWT(),
     updatedAt: this.updatedAt,
     username: this.username,
-    hubspotVid: this.hubspotVid,
-    company: this.company,
   };
   if (user.role === 'founder') delete user.reviews;
-  if (user.role !== 'founder') {
-    delete user.pitchDeck;
-    delete user.pitchDeckAttemptsLeft;
-    delete user.pitchDeckLockDate;
-    delete user.pitchDeckLocked;
-  }
+  if (user.role !== 'founder') delete user.pitchDeck;
   return user;
 };
 
 UserSchema.methods.toUserJSONFor = function toUserJSONFor() {
   const user = {
     active: this.active,
+    company: this.company,
     createdAt: this.createdAt,
     email: this.email,
+    hubspotVid: this.hubspotVid,
     id: this._id,
     pitchDeck: this.pitchDeck,
-    pitchDeckAttemptsLeft: this.pitchDeckAttemptsLeft,
-    pitchDeckLockDate: this.pitchDeckLockDate,
-    pitchDeckLocked: this.isPitchDeckLocked(),
     reviews: this.reviews,
     role: this.role,
     state: this.state,
     updatedAt: this.updatedAt,
     username: this.username,
-    hubspotVid: this.hubspotVid,
-    company: this.company,
   };
   if (user.role === 'founder') delete user.reviews;
-  if (user.role !== 'founder') {
-    delete user.pitchDeck;
-    delete user.pitchDeckAttemptsLeft;
-    delete user.pitchDeckLockDate;
-    delete user.pitchDeckLocked;
-  }
+  if (user.role !== 'founder') delete user.pitchDeck;
   return user;
-};
-
-UserSchema.methods.decrementPitchDeckAttemptsLeft = function pitchDeckAttemptsLeft() {
-  this.pitchDeckAttemptsLeft -= 1;
-};
-
-UserSchema.methods.isPitchDeckLocked = function isPitchDeckLocked() {
-  return this.pitchDeckLockDate && this.pitchDeckLockDate < Date.now();
-};
-
-UserSchema.methods.setPitchDeckLockDate = function setPitchDeckLockDate() {
-  const today = new Date();
-  const exp = new Date(today);
-  exp.setDate(today.getDate() + PITCH_DECK_GRACE_PERIOD);
-  this.pitchDeckLockDate = exp;
 };
 
 // register the schema within mongoose

@@ -50,10 +50,10 @@ router.get('/reviews/pitchdeck/:id',
   grantOwnerAccess('read', 'pitchdeck'),
   getReviewsByPitchDecksId);
 
-// Get all reviews for a pitchdeck by pitchdeck ID
+// Update review by ID
 router.put('/reviews/:id',
-  // auth.required,
-  // grantOwnerAccess('update', 'review'),
+  auth.required,
+  grantOwnerAccess('update', 'review'),
   updateReview);
 
 module.exports = router;

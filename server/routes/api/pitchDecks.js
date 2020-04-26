@@ -7,6 +7,7 @@ const {
   grantOwnerAccess,
 } = require('../../controllers/accessController');
 const {
+  validatePitchDeckOwner,
   createPitchDeck,
   getActivePitchDecks,
   getPitchDeckById,
@@ -18,6 +19,7 @@ const {
 router.post('/pitchDecks',
   auth.required,
   grantAccess('createOwn', 'pitchdeck'),
+  validatePitchDeckOwner,
   upload.single('pitchdeck'),
   awsWorker.doUpload,
   createPitchDeck);

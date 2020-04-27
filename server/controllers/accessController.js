@@ -24,7 +24,7 @@ exports.grantOwnerAccess = (action, resource) => async (req, res, next) => {
       const userId = req.payload.id;
       if (!mongoose.Types.ObjectId.isValid(userId)) return res.sendStatus(400);
       const user = await User.findById(userId);
-      if (!user) return req.sendStatus(400);
+      if (!user) return res.sendStatus(400);
       if (resource === 'review') {
         if (user.reviews) {
           const { reviews } = user;
@@ -37,7 +37,11 @@ exports.grantOwnerAccess = (action, resource) => async (req, res, next) => {
         }
       }
     } else if (resource === 'user') {
-      isOwner = req.payload.id === req.params.id;
+      if (Object.prototype.hasOwnProperty.call(req.params, 'id')) {
+        isOwner = req.payload.id === req.params.id;
+      } else if (Object.prototype.hasOwnProperty.call(req.params, 'username')) {
+        isOwner = req.payload.username === req.params.username;
+      }
     }
     const possession = isOwner
       ? 'Own'

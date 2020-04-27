@@ -8,21 +8,13 @@ const {
 } = require('../../controllers/accessController');
 const {
   validatePitchDeckOwner,
-  createPitchDeck,
+  stagePitchDeck,
+  savePitchDeck,
   getActivePitchDecks,
   getPitchDeckById,
   getPitchDeckS3Key,
   getPitchDecks,
 } = require('../../controllers/pitchDeckController');
-
-// Create pitch deck
-router.post('/pitchDecks',
-  auth.required,
-  grantAccess('createOwn', 'pitchdeck'),
-  validatePitchDeckOwner,
-  upload.single('pitchdeck'),
-  awsWorker.doUpload,
-  createPitchDeck);
 
 // Get all active pitch decks
 router.get('/pitchDecks/active',
@@ -48,5 +40,14 @@ router.get('/pitchDecks',
   auth.required,
   grantAccess('readAny', 'pitchdeck'),
   getPitchDecks);
+
+router.put('/pitchDecks',
+  auth.required,
+  grantAccess('createOwn', 'pitchdeck'),
+  validatePitchDeckOwner,
+  upload.single('pitchdeck'),
+  stagePitchDeck,
+  awsWorker.doUpload,
+  savePitchDeck);
 
 module.exports = router;

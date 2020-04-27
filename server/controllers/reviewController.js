@@ -161,7 +161,23 @@ exports.getReviewsByPitchDecksId = async (req, res, next) => {
       return res.sendStatus(404);
     }
     const reviewDocs = await Review.find({ pitchDeck: id })
-      .populate('owner', ['username', 'email', 'company']);
+      .populate('owner', ['username', 'email', 'company'])
+      .lean()
+      .exec();
+    const { role } = req.payload;
+    if (role === 'founder') {
+      // delete irrelevant keys or keys which we don't want the founder to see
+      reviewDocs.forEach((r) => {
+        // eslint-disable-next-line no-underscore-dangle
+        delete r.__v;
+        delete r._id;
+        delete r.owner;
+        delete r.reviewerName;
+        delete r.additionalComments;
+        delete r.pitchReady;
+        delete r.pitchDeck;
+      });
+    }
     return res.status(200).json(reviewDocs);
   } catch (error) {
     return next(error);

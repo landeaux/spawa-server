@@ -28,7 +28,8 @@ exports.createReview = async (req, res, next) => {
     review.pitchReady = req.body.review.pitchReady;
     const reviewDoc = await review.save();
     const pitchDeckDoc = await PitchDeck.findById(req.body.review.pitchDeck);
-    pitchDeckDoc.reviews.push(reviewDoc._id);
+    const activeVersion = pitchDeckDoc.getActiveVersion();
+    activeVersion.reviews.push(reviewDoc._id);
     await pitchDeckDoc.save();
     const userDoc = await User.findById(req.payload.id);
     userDoc.reviews.push(reviewDoc._id);
@@ -46,8 +47,25 @@ exports.getReviewById = async (req, res, next) => {
     if (!mongoose.Types.ObjectId.isValid(id)) return res.sendStatus(400);
     const review = await Review
       .findById(id)
-      .populate('owner', ['username', 'email'])
-      .populate('pitchDeck')
+      .populate('owner', [
+        'username',
+        'email',
+        'company',
+      ])
+      .populate({
+        path: 'pitchDeck',
+        populate: {
+          path: 'owner',
+          select: 'company',
+        },
+        select: [
+          'owner',
+          'status',
+          'attemptsLeft',
+          'lockDate',
+          'updatedAt',
+        ],
+      })
       .exec();
     return review
       ? res.status(200).json({ review: review.toReviewJSON() }) // review found

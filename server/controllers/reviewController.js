@@ -120,7 +120,8 @@ exports.deleteReview = async (req, res, next) => {
         },
       });
     }
-    await pitchDeckDoc.reviews.pull(id);
+    const activeVersion = pitchDeckDoc.getActiveVersion();
+    await activeVersion.reviews.pull(id);
     await pitchDeckDoc.save();
     const STATUS_CODE = await Review.findByIdAndDelete(id)
       ? 204 // No Content
@@ -155,11 +156,12 @@ exports.getReviewsByPitchDecksId = async (req, res, next) => {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.sendStatus(400);
     }
-    const pitchDoc = await PitchDeck.findById(id);
-    if (!pitchDoc) {
+    const pitchDeckDoc = await PitchDeck.findById(id);
+    if (!pitchDeckDoc) {
       return res.sendStatus(404);
     }
-    const reviewDocs = await Review.find({ pitchDeck: id });
+    const reviewDocs = await Review.find({ pitchDeck: id })
+      .populate('owner', ['username', 'email', 'company']);
     return res.status(200).json(reviewDocs);
   } catch (error) {
     return next(error);

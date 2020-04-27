@@ -182,9 +182,17 @@ exports.getPitchDeckS3Key = async (req, res, next) => {
 // Get all pitch decks
 exports.getPitchDecks = async (req, res, next) => {
   try {
-    const pitchDecks = await PitchDeck.find({});
+    const allPitchDecks = await PitchDeck.find()
+      .populate('owner', ['company'])
+      .exec();
+    const activePitchDecks = allPitchDecks
+      .map((p) => ({
+        ...p.toPitchDeckJSON(),
+        company: p.owner.company,
+        owner: p.owner._id,
+      }));
     res.status(200).json({
-      pitchDecks: pitchDecks.map((pitchDeck) => pitchDeck.toPitchDeckJSON()),
+      pitchDecks: activePitchDecks,
     });
   } catch (error) {
     next(error);

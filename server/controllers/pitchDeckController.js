@@ -125,20 +125,15 @@ exports.savePitchDeck = async (req, res, next) => {
 // Get all active pitch decks
 exports.getActivePitchDecks = async (req, res, next) => {
   try {
-    const founders = await User.find({ role: 'founder' })
-      .populate('pitchDeck')
-      .lean()
-      .exec();
-    if (!founders) return res.sendStatus(404);
-    const pitchDecks = founders
-      .filter((founder) => founder.pitchDeck && !founder.pitchDeck.accepted)
-      .map((founder) => ({
-        ...founder.pitchDeck,
-        company: founder.company,
-      }));
-    return res.status(200).json({ pitchDecks });
+    const allPitchDeckDocs = await PitchDeck.find();
+    const activePitchDecks = allPitchDeckDocs
+      .filter((p) => p.isUnderReview())
+      .map((p) => p.toPitchDeckJSON());
+    res.status(200).json({
+      pitchDecks: activePitchDecks,
+    });
   } catch (error) {
-    return next(error);
+    next(error);
   }
 };
 
@@ -169,8 +164,9 @@ exports.getPitchDeckS3Key = async (req, res, next) => {
     if (!pitchDeck) {
       return res.sendStatus(404); // pitch deck not found
     }
-    req.params.key = pitchDeck.s3Key;
-    req.params.filename = pitchDeck.filename;
+    const { s3Key, filename } = pitchDeck.getActiveVersion();
+    req.params.key = s3Key;
+    req.params.filename = filename;
     return next();
   } catch (error) {
     return next(error);

@@ -44,7 +44,9 @@ exports.createReview = async (req, res, next) => {
 exports.getReviewById = async (req, res, next) => {
   try {
     const { id } = req.params;
-    if (!mongoose.Types.ObjectId.isValid(id)) return res.sendStatus(400);
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ errors: { id: 'is not valid' } });
+    }
     const review = await Review
       .findById(id)
       .populate('owner', [
@@ -69,7 +71,7 @@ exports.getReviewById = async (req, res, next) => {
       .exec();
     return review
       ? res.status(200).json({ review: review.toReviewJSON() }) // review found
-      : res.sendStatus(404); // review not found
+      : res.status(404).json({ errors: { review: 'not found' } }); // review not found
   } catch (error) {
     return next(error);
   }
@@ -92,7 +94,7 @@ exports.deleteReview = async (req, res, next) => {
   try {
     const { id } = req.params;
     if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.sendStatus(400);
+      return res.status(400).json({ errors: { id: 'is not valid' } });
     }
     const reviewDoc = await Review.findById(id);
     if (!reviewDoc) {
@@ -137,11 +139,15 @@ exports.getReviewsByOwnerId = async (req, res, next) => {
   try {
     const { id } = req.params;
     if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.sendStatus(400);
+      return res.status(400).json({ errors: { id: 'is not valid' } });
     }
     const userDoc = await User.findById(id);
     if (!userDoc) {
-      return res.sendStatus(404);
+      return res.status(404).json({
+        errors: {
+          user: 'does not exist',
+        },
+      });
     }
     const reviewDocs = await Review.find({ owner: id });
     return res.status(200).json(reviewDocs);
@@ -154,11 +160,15 @@ exports.getReviewsByPitchDecksId = async (req, res, next) => {
   try {
     const { id } = req.params;
     if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.sendStatus(400);
+      return res.status(400).json({ errors: { id: 'is not valid' } });
     }
     const pitchDeckDoc = await PitchDeck.findById(id);
     if (!pitchDeckDoc) {
-      return res.sendStatus(404);
+      return res.status(404).json({
+        errors: {
+          pitchDeck: 'does not exist',
+        },
+      });
     }
     const reviewDocs = await Review.find({ pitchDeck: id })
       .populate('owner', ['username', 'email', 'company'])
@@ -188,11 +198,15 @@ exports.updateReview = async (req, res, next) => {
   try {
     const { id } = req.params;
     if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.sendStatus(400);
+      return res.status(400).json({ errors: { id: 'is not valid' } });
     }
     const reviewDoc = await Review.findById(id);
     if (!reviewDoc) {
-      return res.sendStatus(404);
+      return res.status(404).json({
+        errors: {
+          review: 'does not exist',
+        },
+      });
     }
 
     // only update fields that were actually passed...

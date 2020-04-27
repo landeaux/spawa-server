@@ -9,7 +9,7 @@ exports.validatePitchDeckOwner = async (req, res, next) => {
     // Check that we have a valid ObjectId
     const ownerId = req.payload.id;
     if (!mongoose.Types.ObjectId.isValid(ownerId)) {
-      res.sendStatus(400);
+      res.status(400).json({ errors: { ownerId: 'is not valid' } });
       return;
     }
 
@@ -147,7 +147,9 @@ exports.getActivePitchDecks = async (req, res, next) => {
 exports.getPitchDeckById = async (req, res, next) => {
   try {
     const { id } = req.params;
-    if (!mongoose.Types.ObjectId.isValid(id)) return res.sendStatus(400);
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ errors: { id: 'is not valid' } });
+    }
     const pitchDeck = await PitchDeck
       .findById(id)
       .populate('owner', ['username', 'email', 'company'])
@@ -155,7 +157,7 @@ exports.getPitchDeckById = async (req, res, next) => {
       .exec();
     return pitchDeck
       ? res.status(200).json({ pitchDeck: pitchDeck.toPitchDeckJSON() }) // pitch deck found
-      : res.sendStatus(404); // pitch deck not found
+      : res.status(404).json({ errors: { pitchDeck: 'does not exist' } }); // pitch deck not found
   } catch (error) {
     return next(error);
   }
@@ -165,10 +167,12 @@ exports.getPitchDeckById = async (req, res, next) => {
 exports.getPitchDeckS3Key = async (req, res, next) => {
   try {
     const { id } = req.params;
-    if (!mongoose.Types.ObjectId.isValid(id)) return res.sendStatus(400);
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ errors: { id: 'is not valid' } });
+    }
     const pitchDeck = await PitchDeck.findById(id);
     if (!pitchDeck) {
-      return res.sendStatus(404); // pitch deck not found
+      return res.status(404).json({ errors: { pitchDeck: 'does not exist' } }); // pitch deck not found
     }
     const { s3Key, filename } = pitchDeck.getActiveVersion();
     req.params.key = s3Key;

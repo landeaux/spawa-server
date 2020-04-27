@@ -9,7 +9,7 @@ exports.validatePitchDeckOwner = async (req, res, next) => {
     // Check that we have a valid ObjectId
     const ownerId = req.payload.id;
     if (!mongoose.Types.ObjectId.isValid(ownerId)) {
-      return res.sendStatus(400);
+      return res.status(400).json({ errors: { ownerId: 'is not valid' } });
     }
 
     // Check that the owner (User) actually exists in the database
@@ -62,7 +62,13 @@ exports.getActivePitchDecks = async (req, res, next) => {
       .populate('pitchDeck')
       .lean()
       .exec();
-    if (!founders) return res.sendStatus(404);
+    if (!founders) {
+      return res.status(404).json({
+        errors: {
+          founder: 'does not exist',
+        },
+      });
+    }
     const pitchDecks = founders
       .filter((founder) => founder.pitchDeck && !founder.pitchDeck.accepted)
       .map((founder) => ({
@@ -79,7 +85,9 @@ exports.getActivePitchDecks = async (req, res, next) => {
 exports.getPitchDeckById = async (req, res, next) => {
   try {
     const { id } = req.params;
-    if (!mongoose.Types.ObjectId.isValid(id)) return res.sendStatus(400);
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ errors: { id: 'is not valid' } });
+    }
     const pitchDeck = await PitchDeck
       .findById(id)
       .populate('owner', ['username', 'email'])
@@ -87,7 +95,7 @@ exports.getPitchDeckById = async (req, res, next) => {
       .exec();
     return pitchDeck
       ? res.status(200).json({ pitchDeck: pitchDeck.toPitchDeckJSON() }) // pitch deck found
-      : res.sendStatus(404); // pitch deck not found
+      : res.status(404).json({ errors: { pitchDeck: 'does not exist' } }); // pitch deck not found
   } catch (error) {
     return next(error);
   }
@@ -97,10 +105,12 @@ exports.getPitchDeckById = async (req, res, next) => {
 exports.getPitchDeckS3Key = async (req, res, next) => {
   try {
     const { id } = req.params;
-    if (!mongoose.Types.ObjectId.isValid(id)) return res.sendStatus(400);
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ errors: { id: 'is not valid' } });
+    }
     const pitchDeck = await PitchDeck.findById(id);
     if (!pitchDeck) {
-      return res.sendStatus(404); // pitch deck not found
+      return res.status(404).json({ errors: { pitchDeck: 'does not exist' } }); // pitch deck not found
     }
     req.params.key = pitchDeck.s3Key;
     req.params.filename = pitchDeck.filename;

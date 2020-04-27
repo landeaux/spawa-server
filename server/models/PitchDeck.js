@@ -157,7 +157,15 @@ PitchDeckSchema.methods.decrementAttemptsLeft = function decrementAttemptsLeft()
  * @returns {boolean}
  */
 PitchDeckSchema.methods.isLocked = function isLocked() {
-  return this.lockDate && this.lockDate < Date.now();
+  return (this.lockDate && this.lockDate < Date.now());
+};
+
+/**
+ * Checks to see if the pitch deck is under review (i.e. active)
+ * @returns {boolean}
+ */
+PitchDeckSchema.methods.isUnderReview = function isLocked() {
+  return this.status === UNDER_REVIEW;
 };
 
 /**

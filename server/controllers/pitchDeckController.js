@@ -125,10 +125,16 @@ exports.savePitchDeck = async (req, res, next) => {
 // Get all active pitch decks
 exports.getActivePitchDecks = async (req, res, next) => {
   try {
-    const allPitchDeckDocs = await PitchDeck.find();
-    const activePitchDecks = allPitchDeckDocs
+    const allPitchDecks = await PitchDeck.find()
+      .populate('owner', ['company'])
+      .exec();
+    const activePitchDecks = allPitchDecks
       .filter((p) => p.isUnderReview())
-      .map((p) => p.toPitchDeckJSON());
+      .map((p) => ({
+        ...p.toPitchDeckJSON(),
+        company: p.owner.company,
+        owner: p.owner._id,
+      }));
     res.status(200).json({
       pitchDecks: activePitchDecks,
     });
@@ -144,7 +150,7 @@ exports.getPitchDeckById = async (req, res, next) => {
     if (!mongoose.Types.ObjectId.isValid(id)) return res.sendStatus(400);
     const pitchDeck = await PitchDeck
       .findById(id)
-      .populate('owner', ['username', 'email'])
+      .populate('owner', ['username', 'email', 'company'])
       .populate('reviews')
       .exec();
     return pitchDeck

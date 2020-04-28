@@ -1,26 +1,28 @@
 const uuid = require('uuid');
 const s3 = require('../config/s3.config.js');
 
-exports.doUpload = (req, res, next) => {
-  const { s3Client } = s3;
-  const params = s3.uploadParams;
+exports.doUpload = async (req, res, next) => {
+  try {
+    const { s3Client } = s3;
+    const params = s3.uploadParams;
 
-  const fileName = req.file.originalname;
-  const fileNameNoExt = fileName.substr(0, fileName.lastIndexOf('.'));
-  const ext = fileName.substr(fileName.lastIndexOf('.') + 1);
+    const fileName = req.file.originalname;
+    const fileNameNoExt = fileName.substr(0, fileName.lastIndexOf('.'));
+    const ext = fileName.substr(fileName.lastIndexOf('.') + 1);
 
-  params.Key = `${fileNameNoExt}_${uuid.v4()}.${ext}`;
-  params.Body = req.file.buffer;
-  params.ContentType = {
-    pdf: 'application/pdf',
-    pptx: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-  }[ext];
+    const { s3Key } = req.pitchDeckDoc.getActiveVersion();
+    const S3KeyAlreadyExists = Boolean(s3Key);
+    params.Key = S3KeyAlreadyExists
+      ? req.pitchDeckDoc.getActiveVersion().s3Key
+      : `${fileNameNoExt}_${uuid.v4()}.${ext}`;
+    params.Body = req.file.buffer;
+    params.ContentType = req.file.mimetype;
 
-  s3Client.upload(params, (err, response) => {
-    if (err) return next(err);
-    req.awsResponse = response;
-    return next();
-  });
+    req.s3Upload = s3Client.upload(params);
+    next();
+  } catch (error) {
+    next(error);
+  }
 };
 
 exports.doDownload = (req, res) => {

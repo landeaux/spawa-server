@@ -28,7 +28,8 @@ exports.createReview = async (req, res, next) => {
     review.pitchReady = req.body.review.pitchReady;
     const reviewDoc = await review.save();
     const pitchDeckDoc = await PitchDeck.findById(req.body.review.pitchDeck);
-    pitchDeckDoc.reviews.push(reviewDoc._id);
+    const activeVersion = pitchDeckDoc.getActiveVersion();
+    activeVersion.reviews.push(reviewDoc._id);
     await pitchDeckDoc.save();
     const userDoc = await User.findById(req.payload.id);
     userDoc.reviews.push(reviewDoc._id);
@@ -43,15 +44,34 @@ exports.createReview = async (req, res, next) => {
 exports.getReviewById = async (req, res, next) => {
   try {
     const { id } = req.params;
-    if (!mongoose.Types.ObjectId.isValid(id)) return res.sendStatus(400);
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ errors: { id: 'is not valid' } });
+    }
     const review = await Review
       .findById(id)
-      .populate('owner', ['username', 'email'])
-      .populate('pitchDeck')
+      .populate('owner', [
+        'username',
+        'email',
+        'company',
+      ])
+      .populate({
+        path: 'pitchDeck',
+        populate: {
+          path: 'owner',
+          select: 'company',
+        },
+        select: [
+          'owner',
+          'status',
+          'attemptsLeft',
+          'lockDate',
+          'updatedAt',
+        ],
+      })
       .exec();
     return review
       ? res.status(200).json({ review: review.toReviewJSON() }) // review found
-      : res.sendStatus(404); // review not found
+      : res.status(404).json({ errors: { review: 'not found' } }); // review not found
   } catch (error) {
     return next(error);
   }
@@ -74,7 +94,7 @@ exports.deleteReview = async (req, res, next) => {
   try {
     const { id } = req.params;
     if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.sendStatus(400);
+      return res.status(400).json({ errors: { id: 'is not valid' } });
     }
     const reviewDoc = await Review.findById(id);
     if (!reviewDoc) {
@@ -102,7 +122,8 @@ exports.deleteReview = async (req, res, next) => {
         },
       });
     }
-    await pitchDeckDoc.reviews.pull(id);
+    const activeVersion = pitchDeckDoc.getActiveVersion();
+    await activeVersion.reviews.pull(id);
     await pitchDeckDoc.save();
     const STATUS_CODE = await Review.findByIdAndDelete(id)
       ? 204 // No Content
@@ -118,11 +139,15 @@ exports.getReviewsByOwnerId = async (req, res, next) => {
   try {
     const { id } = req.params;
     if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.sendStatus(400);
+      return res.status(400).json({ errors: { id: 'is not valid' } });
     }
     const userDoc = await User.findById(id);
     if (!userDoc) {
-      return res.sendStatus(404);
+      return res.status(404).json({
+        errors: {
+          user: 'does not exist',
+        },
+      });
     }
     const reviewDocs = await Review.find({ owner: id });
     return res.status(200).json(reviewDocs);
@@ -135,14 +160,39 @@ exports.getReviewsByPitchDecksId = async (req, res, next) => {
   try {
     const { id } = req.params;
     if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.sendStatus(400);
+      return res.status(400).json({ errors: { id: 'is not valid' } });
     }
-    const pitchDoc = await PitchDeck.findById(id);
-    if (!pitchDoc) {
-      return res.sendStatus(404);
+    const pitchDeckDoc = await PitchDeck.findById(id)
+      .populate({
+        path: 'versions.reviews',
+        populate: {
+          path: 'owner',
+          select: [
+            'username',
+            'email',
+            'company',
+          ],
+        },
+      })
+      .exec();
+
+    const { reviews } = pitchDeckDoc.getActiveVersion();
+
+    const { role } = req.payload;
+    if (role === 'founder') {
+      // delete irrelevant keys or keys which we don't want the founder to see
+      reviews.forEach((r) => {
+        // eslint-disable-next-line no-underscore-dangle
+        delete r.__v;
+        delete r._id;
+        delete r.owner;
+        delete r.reviewerName;
+        delete r.additionalComments;
+        delete r.pitchReady;
+        delete r.pitchDeck;
+      });
     }
-    const reviewDocs = await Review.find({ pitchDeck: id });
-    return res.status(200).json(reviewDocs);
+    return res.status(200).json(reviews);
   } catch (error) {
     return next(error);
   }
@@ -152,11 +202,15 @@ exports.updateReview = async (req, res, next) => {
   try {
     const { id } = req.params;
     if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.sendStatus(400);
+      return res.status(400).json({ errors: { id: 'is not valid' } });
     }
     const reviewDoc = await Review.findById(id);
     if (!reviewDoc) {
-      return res.sendStatus(404);
+      return res.status(404).json({
+        errors: {
+          review: 'does not exist',
+        },
+      });
     }
 
     // only update fields that were actually passed...

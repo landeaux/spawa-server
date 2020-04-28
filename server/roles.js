@@ -37,6 +37,7 @@ exports.roles = (function roles() {
     .readAny('review')
     .updateAny('review')
     .deleteAny('review')
+    .updateAny('pitchdeck')
     .deleteAny('pitchdeck');
 
   return ac;

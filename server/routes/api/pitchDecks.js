@@ -7,6 +7,7 @@ const {
   grantOwnerAccess,
 } = require('../../controllers/accessController');
 const {
+  validateIdAndFindPitchDeck,
   validatePitchDeckOwner,
   stagePitchDeck,
   savePitchDeck,
@@ -64,6 +65,7 @@ router.put('/pitchDecks/submit',
 router.put('/pitchDecks/accept/:id',
   auth.required,
   grantAccess('updateAny', 'pitchdeck'),
+  validateIdAndFindPitchDeck,
   acceptPitchDeck);
 
 module.exports = router;

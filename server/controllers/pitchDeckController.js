@@ -3,6 +3,43 @@ const mongoose = require('mongoose');
 const PitchDeck = mongoose.model('PitchDeck');
 const User = mongoose.model('User');
 
+exports.validateIdAndFindPitchDeck = async (req, res, next) => {
+  try {
+    // make sure the id is valid
+    const { id } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      res.status(400).json({
+        errors: {
+          id: 'is not valid',
+        },
+      });
+      return;
+    }
+
+    // find pitch deck
+    const pitchDeckDoc = await PitchDeck.findById(req.params.id);
+    const pitchDeckExists = Boolean(pitchDeckDoc);
+
+    // make sure it exists
+    if (!pitchDeckExists) {
+      res.status(401).json({
+        errors: {
+          pitchDeck: 'does not exist',
+        },
+      });
+      return;
+    }
+
+    // pin pitch deck document to request object
+    req.pitchDeckDoc = pitchDeckDoc;
+
+    // pass on to next middleware
+    next();
+  } catch (error) {
+    next(error);
+  }
+};
+
 // Validate the pitch deck owner before attempting to upload/create pitch deck
 exports.validatePitchDeckOwner = async (req, res, next) => {
   try {
@@ -234,40 +271,8 @@ exports.submitForReview = async (req, res, next) => {
 // Mark a pitch deck as accepted
 exports.acceptPitchDeck = async (req, res, next) => {
   try {
-    // make sure we have an id in route params
-    if (!Object.prototype.hasOwnProperty.call(req.params, 'id')) {
-      res.status(400).json({
-        errors: {
-          id: 'is missing',
-        },
-      });
-      return;
-    }
-
-    // make sure the id is valid
-    const { id } = req.params;
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      res.status(400).json({
-        errors: {
-          id: 'is not valid',
-        },
-      });
-      return;
-    }
-
-    // find pitch deck
-    const pitchDeckDoc = await PitchDeck.findById(req.params.id);
-    const pitchDeckExists = Boolean(pitchDeckDoc);
-
-    // make sure it exists
-    if (!pitchDeckExists) {
-      res.status(401).json({
-        errors: {
-          pitchDeck: 'does not exist',
-        },
-      });
-      return;
-    }
+    // extract pitchDeckDoc from request object
+    const { pitchDeckDoc } = req;
 
     // update pitch deck
     pitchDeckDoc.setAccepted();

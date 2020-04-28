@@ -14,6 +14,7 @@ const {
   getPitchDeckById,
   getPitchDeckS3Key,
   getPitchDecks,
+  submitForReview,
 } = require('../../controllers/pitchDeckController');
 
 // Get all active pitch decks
@@ -49,5 +50,11 @@ router.put('/pitchDecks',
   stagePitchDeck,
   awsWorker.doUpload,
   savePitchDeck);
+
+router.put('/pitchDecks/submit',
+  auth.required,
+  grantAccess('updateOwn', 'pitchdeck'),
+  validatePitchDeckOwner,
+  submitForReview);
 
 module.exports = router;

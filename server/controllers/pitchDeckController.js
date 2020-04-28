@@ -202,3 +202,31 @@ exports.getPitchDecks = async (req, res, next) => {
     next(error);
   }
 };
+
+// Update pitch deck status to UNDER_REVIEW
+exports.submitForReview = async (req, res, next) => {
+  try {
+    // find existing pitch deck
+    const pitchDeckId = req.ownerDoc.pitchDeck;
+    const pitchDeckDoc = await PitchDeck.findById(pitchDeckId);
+    const pitchDeckExists = Boolean(pitchDeckDoc);
+
+    if (!pitchDeckExists) {
+      res.status(401).json({
+        errors: {
+          error: 'You don\'t have enough permission to perform this action',
+        },
+      });
+      return;
+    }
+
+    pitchDeckDoc.setUnderReview();
+    pitchDeckDoc.lockDate = new Date();
+    const savedPitchDeckDoc = await pitchDeckDoc.save();
+    res.status(200).json({
+      pitchDeck: savedPitchDeckDoc.toPitchDeckJSON(),
+    });
+  } catch (error) {
+    next(error);
+  }
+};

@@ -248,18 +248,35 @@ exports.submitForReview = async (req, res, next) => {
     const pitchDeckDoc = await PitchDeck.findById(pitchDeckId);
     const pitchDeckExists = Boolean(pitchDeckDoc);
 
+    // make sure pitch deck exists
     if (!pitchDeckExists) {
       res.status(401).json({
         errors: {
-          error: 'You don\'t have enough permission to perform this action',
+          pitchDeck: 'does not exist',
         },
       });
       return;
     }
 
+    // make sure user is allowed to change to this status
+    if (!pitchDeckDoc.isNotReady() && !pitchDeckDoc.isNeedsRework()) {
+      res.status(401).json({
+        errors: {
+          user: 'is not allowed to perform this action',
+        },
+      });
+      return;
+    }
+
+    // update pitch deck
     pitchDeckDoc.setUnderReview();
-    pitchDeckDoc.lockDate = new Date();
+    pitchDeckDoc.setLockDate(0);
+    pitchDeckDoc.decrementAttemptsLeft();
+
+    // save pitch deck
     const savedPitchDeckDoc = await pitchDeckDoc.save();
+
+    // send back saved pitch deck with 200 status
     res.status(200).json({
       pitchDeck: savedPitchDeckDoc.toPitchDeckJSON(),
     });
@@ -276,7 +293,8 @@ exports.acceptPitchDeck = async (req, res, next) => {
 
     // update pitch deck
     pitchDeckDoc.setAccepted();
-    pitchDeckDoc.lockDate = new Date();
+    pitchDeckDoc.setLockDate(0);
+    pitchDeckDoc.attemptsLeft = 0;
 
     // save pitch deck
     const savedPitchDeckDoc = await pitchDeckDoc.save();
@@ -298,7 +316,40 @@ exports.rejectPitchDeck = async (req, res, next) => {
 
     // update pitch deck
     pitchDeckDoc.setRejected();
-    pitchDeckDoc.lockDate = new Date();
+    pitchDeckDoc.setLockDate(0);
+    pitchDeckDoc.attemptsLeft = 0;
+
+    // save pitch deck
+    const savedPitchDeckDoc = await pitchDeckDoc.save();
+
+    // send back saved pitch deck with 200 status
+    res.status(200).json({
+      pitchDeck: savedPitchDeckDoc.toPitchDeckJSON(),
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Mark a pitch deck as needing re-work
+exports.reworkPitchDeck = async (req, res, next) => {
+  try {
+    // extract pitchDeckDoc from request object
+    const { pitchDeckDoc } = req;
+
+    // determine grace period
+    const gracePeriod = pitchDeckDoc.attemptsLeft > 0
+      ? 7 // one week
+      : 0;
+    pitchDeckDoc.setLockDate(gracePeriod);
+
+    // if the user still has attempts left, set state NEEDS_REWORK
+    // otherwise, set REJECT
+    if (pitchDeckDoc.attemptsLeft > 0) {
+      pitchDeckDoc.setNeedsRework();
+    } else {
+      pitchDeckDoc.setRejected();
+    }
 
     // save pitch deck
     const savedPitchDeckDoc = await pitchDeckDoc.save();

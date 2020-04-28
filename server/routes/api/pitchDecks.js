@@ -7,6 +7,7 @@ const {
   grantOwnerAccess,
 } = require('../../controllers/accessController');
 const {
+  validateIdAndFindPitchDeck,
   validatePitchDeckOwner,
   stagePitchDeck,
   savePitchDeck,
@@ -15,6 +16,9 @@ const {
   getPitchDeckS3Key,
   getPitchDecks,
   submitForReview,
+  acceptPitchDeck,
+  rejectPitchDeck,
+  reworkPitchDeck,
 } = require('../../controllers/pitchDeckController');
 
 // Get all active pitch decks
@@ -42,6 +46,7 @@ router.get('/pitchDecks',
   grantAccess('readAny', 'pitchdeck'),
   getPitchDecks);
 
+// Upload pitch deck
 router.put('/pitchDecks',
   auth.required,
   grantAccess('createOwn', 'pitchdeck'),
@@ -51,10 +56,32 @@ router.put('/pitchDecks',
   awsWorker.doUpload,
   savePitchDeck);
 
+// Submit a pitch deck for review (i.e. set status to UNDER_REVIEW)
 router.put('/pitchDecks/submit',
   auth.required,
   grantAccess('updateOwn', 'pitchdeck'),
   validatePitchDeckOwner,
   submitForReview);
+
+// Mark a pitch deck as accepted
+router.put('/pitchDecks/accept/:id',
+  auth.required,
+  grantAccess('updateAny', 'pitchdeck'),
+  validateIdAndFindPitchDeck,
+  acceptPitchDeck);
+
+// Mark a pitch deck as rejected
+router.put('/pitchDecks/reject/:id',
+  auth.required,
+  grantAccess('updateAny', 'pitchdeck'),
+  validateIdAndFindPitchDeck,
+  rejectPitchDeck);
+
+// Mark a pitch deck as needing re-work
+router.put('/pitchDecks/rework/:id',
+  auth.required,
+  grantAccess('updateAny', 'pitchdeck'),
+  validateIdAndFindPitchDeck,
+  reworkPitchDeck);
 
 module.exports = router;

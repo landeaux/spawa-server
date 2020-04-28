@@ -3,6 +3,43 @@ const mongoose = require('mongoose');
 const PitchDeck = mongoose.model('PitchDeck');
 const User = mongoose.model('User');
 
+exports.validateIdAndFindPitchDeck = async (req, res, next) => {
+  try {
+    // make sure the id is valid
+    const { id } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      res.status(400).json({
+        errors: {
+          id: 'is not valid',
+        },
+      });
+      return;
+    }
+
+    // find pitch deck
+    const pitchDeckDoc = await PitchDeck.findById(req.params.id);
+    const pitchDeckExists = Boolean(pitchDeckDoc);
+
+    // make sure it exists
+    if (!pitchDeckExists) {
+      res.status(401).json({
+        errors: {
+          pitchDeck: 'does not exist',
+        },
+      });
+      return;
+    }
+
+    // pin pitch deck document to request object
+    req.pitchDeckDoc = pitchDeckDoc;
+
+    // pass on to next middleware
+    next();
+  } catch (error) {
+    next(error);
+  }
+};
+
 // Validate the pitch deck owner before attempting to upload/create pitch deck
 exports.validatePitchDeckOwner = async (req, res, next) => {
   try {
@@ -60,8 +97,7 @@ exports.stagePitchDeck = async (req, res, next) => {
             filename: '',
           });
 
-          // set a new lock date
-          pitchDeckDoc.setLockDate();
+          // set state to not ready to allow user to make updates
           pitchDeckDoc.setNotReady();
         }
 
@@ -203,7 +239,7 @@ exports.getPitchDecks = async (req, res, next) => {
   }
 };
 
-// Update pitch deck status to UNDER_REVIEW
+// Submit a pitch deck for review (i.e. set status to UNDER_REVIEW)
 exports.submitForReview = async (req, res, next) => {
   try {
     // find existing pitch deck
@@ -211,18 +247,143 @@ exports.submitForReview = async (req, res, next) => {
     const pitchDeckDoc = await PitchDeck.findById(pitchDeckId);
     const pitchDeckExists = Boolean(pitchDeckDoc);
 
+    // make sure pitch deck exists
     if (!pitchDeckExists) {
       res.status(401).json({
         errors: {
-          error: 'You don\'t have enough permission to perform this action',
+          pitchDeck: 'does not exist',
         },
       });
       return;
     }
 
+    // make sure user is allowed to change to this status
+    if (!pitchDeckDoc.isNotReady() && !pitchDeckDoc.isNeedsRework()) {
+      res.status(401).json({
+        errors: {
+          user: 'is not allowed to perform this action',
+        },
+      });
+      return;
+    }
+
+    // update pitch deck
     pitchDeckDoc.setUnderReview();
-    pitchDeckDoc.lockDate = new Date();
+    pitchDeckDoc.setLockDate(0);
+    pitchDeckDoc.decrementAttemptsLeft();
+
+    // save pitch deck
     const savedPitchDeckDoc = await pitchDeckDoc.save();
+
+    // send back saved pitch deck with 200 status
+    res.status(200).json({
+      pitchDeck: savedPitchDeckDoc.toPitchDeckJSON(),
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Mark a pitch deck as accepted
+exports.acceptPitchDeck = async (req, res, next) => {
+  try {
+    // extract pitchDeckDoc from request object
+    const { pitchDeckDoc } = req;
+
+    // make sure we are in the proper state
+    if (!pitchDeckDoc.isUnderReview()) {
+      res.status(400).json({
+        errors: {
+          pitchDeck: 'is not in proper state to make this transition',
+        },
+      });
+      return;
+    }
+
+    // update pitch deck
+    pitchDeckDoc.setAccepted();
+    pitchDeckDoc.setLockDate(0);
+    pitchDeckDoc.attemptsLeft = 0;
+
+    // save pitch deck
+    const savedPitchDeckDoc = await pitchDeckDoc.save();
+
+    // send back saved pitch deck with 200 status
+    res.status(200).json({
+      pitchDeck: savedPitchDeckDoc.toPitchDeckJSON(),
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Mark a pitch deck as rejected
+exports.rejectPitchDeck = async (req, res, next) => {
+  try {
+    // extract pitchDeckDoc from request object
+    const { pitchDeckDoc } = req;
+
+    // make sure we are in the proper state
+    if (!pitchDeckDoc.isUnderReview()) {
+      res.status(400).json({
+        errors: {
+          pitchDeck: 'is not in proper state to make this transition',
+        },
+      });
+      return;
+    }
+
+    // update pitch deck
+    pitchDeckDoc.setRejected();
+    pitchDeckDoc.setLockDate(0);
+    pitchDeckDoc.attemptsLeft = 0;
+
+    // save pitch deck
+    const savedPitchDeckDoc = await pitchDeckDoc.save();
+
+    // send back saved pitch deck with 200 status
+    res.status(200).json({
+      pitchDeck: savedPitchDeckDoc.toPitchDeckJSON(),
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Mark a pitch deck as needing re-work
+exports.reworkPitchDeck = async (req, res, next) => {
+  try {
+    // extract pitchDeckDoc from request object
+    const { pitchDeckDoc } = req;
+
+    // make sure we are in the proper state
+    if (!pitchDeckDoc.isUnderReview()) {
+      res.status(400).json({
+        errors: {
+          pitchDeck: 'is not in proper state to make this transition',
+        },
+      });
+      return;
+    }
+
+    // determine grace period
+    const gracePeriod = pitchDeckDoc.attemptsLeft > 0
+      ? 7 // one week
+      : 0;
+    pitchDeckDoc.setLockDate(gracePeriod);
+
+    // if the user still has attempts left, set state NEEDS_REWORK
+    // otherwise, set REJECT
+    if (pitchDeckDoc.attemptsLeft > 0) {
+      pitchDeckDoc.setNeedsRework();
+    } else {
+      pitchDeckDoc.setRejected();
+    }
+
+    // save pitch deck
+    const savedPitchDeckDoc = await pitchDeckDoc.save();
+
+    // send back saved pitch deck with 200 status
     res.status(200).json({
       pitchDeck: savedPitchDeckDoc.toPitchDeckJSON(),
     });

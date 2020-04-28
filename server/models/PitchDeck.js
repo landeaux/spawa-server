@@ -34,7 +34,7 @@ const NUM_ATTEMPTS_ALLOWED = 3;
 /**
  * The number of days to allow for resubmitting a pitch deck before it is locked
  */
-const GRACE_PERIOD = 1;
+const DEFAULT_GRACE_PERIOD = 1;
 
 const PitchDeckSchema = new mongoose.Schema({
   owner: {
@@ -53,7 +53,9 @@ const PitchDeckSchema = new mongoose.Schema({
       REJECTED,
     ],
   },
-  versions: [PitchDeckVersionSchema],
+  versions: [{
+    type: PitchDeckVersionSchema,
+  }],
   attemptsLeft: {
     type: Number,
     required: false,
@@ -71,7 +73,7 @@ const PitchDeckSchema = new mongoose.Schema({
     default: () => {
       const today = new Date();
       const exp = new Date(today);
-      exp.setDate(today.getDate() + GRACE_PERIOD);
+      exp.setDate(today.getDate() + DEFAULT_GRACE_PERIOD);
       return exp;
     },
   },
@@ -90,6 +92,7 @@ PitchDeckSchema.methods.toPitchDeckJSON = function toPitchDeckJSON() {
     owner: this.owner,
     lockDate: this.lockDate,
     isLocked: this.isLocked(),
+    attemptsLeft: this.attemptsLeft,
     createdAt: this.createdAt,
     updatedAt: this.updatedAt,
     s3Key,
@@ -153,29 +156,66 @@ PitchDeckSchema.methods.decrementAttemptsLeft = function decrementAttemptsLeft()
 };
 
 /**
- * Checks to see if the pitch deck is locked for new uploads
+ * Checks to see if the pitch deck is locked for new uploads. True if
+ * current date is past the lock date or in a non-editable state or zero
+ * attempts to resubmit are left.
  * @returns {boolean}
  */
 PitchDeckSchema.methods.isLocked = function isLocked() {
-  return (this.lockDate && this.lockDate < Date.now());
+  return (this.lockDate && this.lockDate < Date.now())
+      || (this.isUnderReview() || this.isAccepted() || this.isRejected())
+      || (this.attemptsLeft === 0);
+};
+
+/**
+ * Checks to see if the pitch deck is not ready for review
+ * @returns {boolean}
+ */
+PitchDeckSchema.methods.isNotReady = function isNotReady() {
+  return this.status === NOT_READY;
 };
 
 /**
  * Checks to see if the pitch deck is under review (i.e. active)
  * @returns {boolean}
  */
-PitchDeckSchema.methods.isUnderReview = function isLocked() {
+PitchDeckSchema.methods.isUnderReview = function isUnderReview() {
   return this.status === UNDER_REVIEW;
 };
 
 /**
- * Resets the lock date. The lock date indicates the date after which the user
- * is blocked from re-uploading their pitch deck.
+ * Checks to see if the pitch deck needs rework
+ * @returns {boolean}
  */
-PitchDeckSchema.methods.setLockDate = function setLockDate() {
+PitchDeckSchema.methods.isNeedsRework = function isNeedsRework() {
+  return this.status === NEEDS_REWORK;
+};
+
+/**
+ * Checks to see if the pitch deck is accepted
+ * @returns {boolean}
+ */
+PitchDeckSchema.methods.isAccepted = function isAccepted() {
+  return this.status === ACCEPTED;
+};
+
+/**
+ * Checks to see if the pitch deck is rejected
+ * @returns {boolean}
+ */
+PitchDeckSchema.methods.isRejected = function isRejected() {
+  return this.status === REJECTED;
+};
+
+/**
+ * Resets the lock date to the given grace period (in days). The lock date
+ * indicates the date after which the user is blocked from re-uploading
+ * their pitch deck.
+ */
+PitchDeckSchema.methods.setLockDate = function setLockDate(gracePeriod = DEFAULT_GRACE_PERIOD) {
   const today = new Date();
   const exp = new Date(today);
-  exp.setDate(today.getDate() + GRACE_PERIOD);
+  exp.setDate(today.getDate() + gracePeriod);
   this.lockDate = exp;
 };
 

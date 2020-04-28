@@ -162,22 +162,26 @@ exports.getReviewsByPitchDecksId = async (req, res, next) => {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(400).json({ errors: { id: 'is not valid' } });
     }
-    const pitchDeckDoc = await PitchDeck.findById(id);
-    if (!pitchDeckDoc) {
-      return res.status(404).json({
-        errors: {
-          pitchDeck: 'does not exist',
+    const pitchDeckDoc = await PitchDeck.findById(id)
+      .populate({
+        path: 'versions.reviews',
+        populate: {
+          path: 'owner',
+          select: [
+            'username',
+            'email',
+            'company',
+          ],
         },
-      });
-    }
-    const reviewDocs = await Review.find({ pitchDeck: id })
-      .populate('owner', ['username', 'email', 'company'])
-      .lean()
+      })
       .exec();
+
+    const { reviews } = pitchDeckDoc.getActiveVersion();
+
     const { role } = req.payload;
     if (role === 'founder') {
       // delete irrelevant keys or keys which we don't want the founder to see
-      reviewDocs.forEach((r) => {
+      reviews.forEach((r) => {
         // eslint-disable-next-line no-underscore-dangle
         delete r.__v;
         delete r._id;
@@ -188,7 +192,7 @@ exports.getReviewsByPitchDecksId = async (req, res, next) => {
         delete r.pitchDeck;
       });
     }
-    return res.status(200).json(reviewDocs);
+    return res.status(200).json(reviews);
   } catch (error) {
     return next(error);
   }

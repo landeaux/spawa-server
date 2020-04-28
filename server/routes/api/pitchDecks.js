@@ -17,6 +17,7 @@ const {
   getPitchDecks,
   submitForReview,
   acceptPitchDeck,
+  rejectPitchDeck,
 } = require('../../controllers/pitchDeckController');
 
 // Get all active pitch decks
@@ -67,5 +68,12 @@ router.put('/pitchDecks/accept/:id',
   grantAccess('updateAny', 'pitchdeck'),
   validateIdAndFindPitchDeck,
   acceptPitchDeck);
+
+// Mark a pitch deck as rejected
+router.put('/pitchDecks/reject/:id',
+  auth.required,
+  grantAccess('updateAny', 'pitchdeck'),
+  validateIdAndFindPitchDeck,
+  rejectPitchDeck);
 
 module.exports = router;

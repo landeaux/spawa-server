@@ -289,3 +289,25 @@ exports.acceptPitchDeck = async (req, res, next) => {
     next(error);
   }
 };
+
+// Mark a pitch deck as rejected
+exports.rejectPitchDeck = async (req, res, next) => {
+  try {
+    // extract pitchDeckDoc from request object
+    const { pitchDeckDoc } = req;
+
+    // update pitch deck
+    pitchDeckDoc.setRejected();
+    pitchDeckDoc.lockDate = new Date();
+
+    // save pitch deck
+    const savedPitchDeckDoc = await pitchDeckDoc.save();
+
+    // send back saved pitch deck with 200 status
+    res.status(200).json({
+      pitchDeck: savedPitchDeckDoc.toPitchDeckJSON(),
+    });
+  } catch (error) {
+    next(error);
+  }
+};

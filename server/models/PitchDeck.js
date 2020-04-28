@@ -53,7 +53,9 @@ const PitchDeckSchema = new mongoose.Schema({
       REJECTED,
     ],
   },
-  versions: [PitchDeckVersionSchema],
+  versions: [{
+    type: PitchDeckVersionSchema,
+  }],
   attemptsLeft: {
     type: Number,
     required: false,

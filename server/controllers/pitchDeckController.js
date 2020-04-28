@@ -97,8 +97,7 @@ exports.stagePitchDeck = async (req, res, next) => {
             filename: '',
           });
 
-          // set a new lock date
-          pitchDeckDoc.setLockDate();
+          // set state to not ready to allow user to make updates
           pitchDeckDoc.setNotReady();
         }
 
@@ -291,6 +290,16 @@ exports.acceptPitchDeck = async (req, res, next) => {
     // extract pitchDeckDoc from request object
     const { pitchDeckDoc } = req;
 
+    // make sure we are in the proper state
+    if (!pitchDeckDoc.isUnderReview()) {
+      res.status(400).json({
+        errors: {
+          pitchDeck: 'is not in proper state to make this transition',
+        },
+      });
+      return;
+    }
+
     // update pitch deck
     pitchDeckDoc.setAccepted();
     pitchDeckDoc.setLockDate(0);
@@ -314,6 +323,16 @@ exports.rejectPitchDeck = async (req, res, next) => {
     // extract pitchDeckDoc from request object
     const { pitchDeckDoc } = req;
 
+    // make sure we are in the proper state
+    if (!pitchDeckDoc.isUnderReview()) {
+      res.status(400).json({
+        errors: {
+          pitchDeck: 'is not in proper state to make this transition',
+        },
+      });
+      return;
+    }
+
     // update pitch deck
     pitchDeckDoc.setRejected();
     pitchDeckDoc.setLockDate(0);
@@ -336,6 +355,16 @@ exports.reworkPitchDeck = async (req, res, next) => {
   try {
     // extract pitchDeckDoc from request object
     const { pitchDeckDoc } = req;
+
+    // make sure we are in the proper state
+    if (!pitchDeckDoc.isUnderReview()) {
+      res.status(400).json({
+        errors: {
+          pitchDeck: 'is not in proper state to make this transition',
+        },
+      });
+      return;
+    }
 
     // determine grace period
     const gracePeriod = pitchDeckDoc.attemptsLeft > 0

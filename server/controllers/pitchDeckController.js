@@ -203,7 +203,7 @@ exports.getPitchDecks = async (req, res, next) => {
   }
 };
 
-// Update pitch deck status to UNDER_REVIEW
+// Submit a pitch deck for review (i.e. set status to UNDER_REVIEW)
 exports.submitForReview = async (req, res, next) => {
   try {
     // find existing pitch deck
@@ -223,6 +223,60 @@ exports.submitForReview = async (req, res, next) => {
     pitchDeckDoc.setUnderReview();
     pitchDeckDoc.lockDate = new Date();
     const savedPitchDeckDoc = await pitchDeckDoc.save();
+    res.status(200).json({
+      pitchDeck: savedPitchDeckDoc.toPitchDeckJSON(),
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Mark a pitch deck as accepted
+exports.acceptPitchDeck = async (req, res, next) => {
+  try {
+    // make sure we have an id in route params
+    if (!Object.prototype.hasOwnProperty.call(req.params, 'id')) {
+      res.status(400).json({
+        errors: {
+          id: 'is missing',
+        },
+      });
+      return;
+    }
+
+    // make sure the id is valid
+    const { id } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      res.status(400).json({
+        errors: {
+          id: 'is not valid',
+        },
+      });
+      return;
+    }
+
+    // find pitch deck
+    const pitchDeckDoc = await PitchDeck.findById(req.params.id);
+    const pitchDeckExists = Boolean(pitchDeckDoc);
+
+    // make sure it exists
+    if (!pitchDeckExists) {
+      res.status(401).json({
+        errors: {
+          pitchDeck: 'does not exist',
+        },
+      });
+      return;
+    }
+
+    // update pitch deck
+    pitchDeckDoc.setAccepted();
+    pitchDeckDoc.lockDate = new Date();
+
+    // save pitch deck
+    const savedPitchDeckDoc = await pitchDeckDoc.save();
+
+    // send back saved pitch deck with 200 status
     res.status(200).json({
       pitchDeck: savedPitchDeckDoc.toPitchDeckJSON(),
     });

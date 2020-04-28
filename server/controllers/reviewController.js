@@ -28,7 +28,8 @@ exports.createReview = async (req, res, next) => {
     review.pitchReady = req.body.review.pitchReady;
     const reviewDoc = await review.save();
     const pitchDeckDoc = await PitchDeck.findById(req.body.review.pitchDeck);
-    pitchDeckDoc.reviews.push(reviewDoc._id);
+    const activeVersion = pitchDeckDoc.getActiveVersion();
+    activeVersion.reviews.push(reviewDoc._id);
     await pitchDeckDoc.save();
     const userDoc = await User.findById(req.payload.id);
     userDoc.reviews.push(reviewDoc._id);
@@ -48,8 +49,25 @@ exports.getReviewById = async (req, res, next) => {
     }
     const review = await Review
       .findById(id)
-      .populate('owner', ['username', 'email'])
-      .populate('pitchDeck')
+      .populate('owner', [
+        'username',
+        'email',
+        'company',
+      ])
+      .populate({
+        path: 'pitchDeck',
+        populate: {
+          path: 'owner',
+          select: 'company',
+        },
+        select: [
+          'owner',
+          'status',
+          'attemptsLeft',
+          'lockDate',
+          'updatedAt',
+        ],
+      })
       .exec();
     return review
       ? res.status(200).json({ review: review.toReviewJSON() }) // review found
@@ -104,7 +122,8 @@ exports.deleteReview = async (req, res, next) => {
         },
       });
     }
-    await pitchDeckDoc.reviews.pull(id);
+    const activeVersion = pitchDeckDoc.getActiveVersion();
+    await activeVersion.reviews.pull(id);
     await pitchDeckDoc.save();
     const STATUS_CODE = await Review.findByIdAndDelete(id)
       ? 204 // No Content
@@ -143,15 +162,32 @@ exports.getReviewsByPitchDecksId = async (req, res, next) => {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(400).json({ errors: { id: 'is not valid' } });
     }
-    const pitchDoc = await PitchDeck.findById(id);
-    if (!pitchDoc) {
+    const pitchDeckDoc = await PitchDeck.findById(id);
+    if (!pitchDeckDoc) {
       return res.status(404).json({
         errors: {
           pitchDeck: 'does not exist',
         },
       });
     }
-    const reviewDocs = await Review.find({ pitchDeck: id });
+    const reviewDocs = await Review.find({ pitchDeck: id })
+      .populate('owner', ['username', 'email', 'company'])
+      .lean()
+      .exec();
+    const { role } = req.payload;
+    if (role === 'founder') {
+      // delete irrelevant keys or keys which we don't want the founder to see
+      reviewDocs.forEach((r) => {
+        // eslint-disable-next-line no-underscore-dangle
+        delete r.__v;
+        delete r._id;
+        delete r.owner;
+        delete r.reviewerName;
+        delete r.additionalComments;
+        delete r.pitchReady;
+        delete r.pitchDeck;
+      });
+    }
     return res.status(200).json(reviewDocs);
   } catch (error) {
     return next(error);

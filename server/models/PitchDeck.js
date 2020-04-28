@@ -34,7 +34,7 @@ const NUM_ATTEMPTS_ALLOWED = 3;
 /**
  * The number of days to allow for resubmitting a pitch deck before it is locked
  */
-const GRACE_PERIOD = 1;
+const DEFAULT_GRACE_PERIOD = 1;
 
 const PitchDeckSchema = new mongoose.Schema({
   owner: {
@@ -71,7 +71,7 @@ const PitchDeckSchema = new mongoose.Schema({
     default: () => {
       const today = new Date();
       const exp = new Date(today);
-      exp.setDate(today.getDate() + GRACE_PERIOD);
+      exp.setDate(today.getDate() + DEFAULT_GRACE_PERIOD);
       return exp;
     },
   },
@@ -169,13 +169,14 @@ PitchDeckSchema.methods.isUnderReview = function isLocked() {
 };
 
 /**
- * Resets the lock date. The lock date indicates the date after which the user
- * is blocked from re-uploading their pitch deck.
+ * Resets the lock date to the given grace period (in days). The lock date
+ * indicates the date after which the user is blocked from re-uploading
+ * their pitch deck.
  */
-PitchDeckSchema.methods.setLockDate = function setLockDate() {
+PitchDeckSchema.methods.setLockDate = function setLockDate(gracePeriod = DEFAULT_GRACE_PERIOD) {
   const today = new Date();
   const exp = new Date(today);
-  exp.setDate(today.getDate() + GRACE_PERIOD);
+  exp.setDate(today.getDate() + gracePeriod);
   this.lockDate = exp;
 };
 

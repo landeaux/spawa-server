@@ -30,12 +30,28 @@ exports.signup = async (req, res, next) => {
   try {
     const user = new User();
 
-    user.email = req.body.user.email;
-    user.username = req.body.user.username;
-    user.setPassword(req.body.user.password);
-    user.company = req.body.user.company;
+    const {
+      username,
+      email,
+      company,
+      password,
+    } = req.body.user;
 
-    const vid = await getHubspotVid(req.body.user.email);
+    if (!password) {
+      res.status(400).json({
+        errors: {
+          password: 'must not be empty',
+        },
+      });
+      return;
+    }
+
+    user.username = username;
+    user.email = email;
+    user.company = company;
+    user.setPassword(password);
+
+    const vid = await getHubspotVid(email);
     if (vid) {
       user.hubspotVid = vid;
     }
@@ -47,9 +63,9 @@ exports.signup = async (req, res, next) => {
       await user.syncCompany();
     }
 
-    return res.status(201).json({ user: user.toAuthJSON() });
+    res.status(201).json({ user: user.toAuthJSON() });
   } catch (error) {
-    return next(error);
+    next(error);
   }
 };
 

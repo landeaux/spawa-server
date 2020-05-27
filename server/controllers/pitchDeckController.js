@@ -303,6 +303,10 @@ exports.acceptPitchDeck = async (req, res, next) => {
     pitchDeckDoc.setAccepted();
     pitchDeckDoc.attemptsLeft = 0;
 
+    // get the active version so we can add admin comments
+    const activeVersion = pitchDeckDoc.getActiveVersion();
+    activeVersion.adminComments = req.body.adminComments || '';
+
     // save pitch deck
     const savedPitchDeckDoc = await pitchDeckDoc.save();
 
@@ -334,6 +338,10 @@ exports.rejectPitchDeck = async (req, res, next) => {
     // update pitch deck
     pitchDeckDoc.setRejected();
     pitchDeckDoc.attemptsLeft = 0;
+
+    // get the active version so we can add admin comments
+    const activeVersion = pitchDeckDoc.getActiveVersion();
+    activeVersion.adminComments = req.body.adminComments || '';
 
     // save pitch deck
     const savedPitchDeckDoc = await pitchDeckDoc.save();
@@ -370,6 +378,10 @@ exports.reworkPitchDeck = async (req, res, next) => {
     } else {
       pitchDeckDoc.setRejected();
     }
+
+    // get the active version so we can add admin comments
+    const activeVersion = pitchDeckDoc.getActiveVersion();
+    activeVersion.adminComments = req.body.adminComments || '';
 
     // save pitch deck
     const savedPitchDeckDoc = await pitchDeckDoc.save();

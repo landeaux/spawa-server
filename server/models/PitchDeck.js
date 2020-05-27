@@ -14,6 +14,11 @@ const PitchDeckVersionSchema = new mongoose.Schema({
     ref: 'Review',
     default: [],
   }],
+  adminComments: {
+    type: String,
+    required: false,
+    default: '',
+  },
 }, { timestamps: true }); // this option creates createdAt and updatedAt fields
 
 /**
@@ -69,6 +74,7 @@ PitchDeckSchema.methods.toPitchDeckJSON = function toPitchDeckJSON() {
     s3Key,
     filename,
     reviews,
+    adminComments,
   } = this.getActiveVersion();
 
   return {
@@ -82,6 +88,7 @@ PitchDeckSchema.methods.toPitchDeckJSON = function toPitchDeckJSON() {
     s3Key,
     filename,
     reviews,
+    adminComments,
   };
 };
 

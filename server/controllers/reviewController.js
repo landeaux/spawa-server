@@ -186,7 +186,6 @@ exports.getReviewsByPitchDecksId = async (req, res, next) => {
         delete r._id;
         delete r.owner;
         delete r.reviewerName;
-        delete r.additionalComments;
         delete r.pitchReady;
         delete r.pitchDeck;
       });

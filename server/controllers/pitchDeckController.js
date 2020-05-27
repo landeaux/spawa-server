@@ -269,7 +269,6 @@ exports.submitForReview = async (req, res, next) => {
 
     // update pitch deck
     pitchDeckDoc.setUnderReview();
-    pitchDeckDoc.setLockDate(0);
     pitchDeckDoc.decrementAttemptsLeft();
 
     // save pitch deck
@@ -302,7 +301,6 @@ exports.acceptPitchDeck = async (req, res, next) => {
 
     // update pitch deck
     pitchDeckDoc.setAccepted();
-    pitchDeckDoc.setLockDate(0);
     pitchDeckDoc.attemptsLeft = 0;
 
     // save pitch deck
@@ -335,7 +333,6 @@ exports.rejectPitchDeck = async (req, res, next) => {
 
     // update pitch deck
     pitchDeckDoc.setRejected();
-    pitchDeckDoc.setLockDate(0);
     pitchDeckDoc.attemptsLeft = 0;
 
     // save pitch deck
@@ -365,12 +362,6 @@ exports.reworkPitchDeck = async (req, res, next) => {
       });
       return;
     }
-
-    // determine grace period
-    const gracePeriod = pitchDeckDoc.attemptsLeft > 0
-      ? 7 // one week
-      : 0;
-    pitchDeckDoc.setLockDate(gracePeriod);
 
     // if the user still has attempts left, set state NEEDS_REWORK
     // otherwise, set REJECT

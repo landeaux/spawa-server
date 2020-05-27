@@ -64,7 +64,6 @@ exports.getReviewById = async (req, res, next) => {
           'owner',
           'status',
           'attemptsLeft',
-          'lockDate',
           'updatedAt',
         ],
       })

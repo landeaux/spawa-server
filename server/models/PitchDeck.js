@@ -14,6 +14,11 @@ const PitchDeckVersionSchema = new mongoose.Schema({
     ref: 'Review',
     default: [],
   }],
+  adminComments: {
+    type: String,
+    required: false,
+    default: '',
+  },
 }, { timestamps: true }); // this option creates createdAt and updatedAt fields
 
 /**
@@ -30,11 +35,6 @@ const REJECTED = 'REJECTED';
  * pitch deck
  */
 const NUM_ATTEMPTS_ALLOWED = 3;
-
-/**
- * The number of days to allow for resubmitting a pitch deck before it is locked
- */
-const DEFAULT_GRACE_PERIOD = 1;
 
 const PitchDeckSchema = new mongoose.Schema({
   owner: {
@@ -67,16 +67,6 @@ const PitchDeckSchema = new mongoose.Schema({
       return `${props.value} must be a non-negative integer.`;
     },
   },
-  lockDate: {
-    type: Date,
-    required: false,
-    default: () => {
-      const today = new Date();
-      const exp = new Date(today);
-      exp.setDate(today.getDate() + DEFAULT_GRACE_PERIOD);
-      return exp;
-    },
-  },
 }, { timestamps: true }); // this option creates createdAt and updatedAt fields
 
 PitchDeckSchema.methods.toPitchDeckJSON = function toPitchDeckJSON() {
@@ -84,13 +74,13 @@ PitchDeckSchema.methods.toPitchDeckJSON = function toPitchDeckJSON() {
     s3Key,
     filename,
     reviews,
+    adminComments,
   } = this.getActiveVersion();
 
   return {
     id: this._id,
     status: this.status,
     owner: this.owner,
-    lockDate: this.lockDate,
     isLocked: this.isLocked(),
     attemptsLeft: this.attemptsLeft,
     createdAt: this.createdAt,
@@ -98,6 +88,7 @@ PitchDeckSchema.methods.toPitchDeckJSON = function toPitchDeckJSON() {
     s3Key,
     filename,
     reviews,
+    adminComments,
   };
 };
 
@@ -162,8 +153,7 @@ PitchDeckSchema.methods.decrementAttemptsLeft = function decrementAttemptsLeft()
  * @returns {boolean}
  */
 PitchDeckSchema.methods.isLocked = function isLocked() {
-  return (this.lockDate && this.lockDate < Date.now())
-      || (this.isUnderReview() || this.isAccepted() || this.isRejected())
+  return (this.isUnderReview() || this.isAccepted() || this.isRejected())
       || (this.attemptsLeft === 0);
 };
 
@@ -205,18 +195,6 @@ PitchDeckSchema.methods.isAccepted = function isAccepted() {
  */
 PitchDeckSchema.methods.isRejected = function isRejected() {
   return this.status === REJECTED;
-};
-
-/**
- * Resets the lock date to the given grace period (in days). The lock date
- * indicates the date after which the user is blocked from re-uploading
- * their pitch deck.
- */
-PitchDeckSchema.methods.setLockDate = function setLockDate(gracePeriod = DEFAULT_GRACE_PERIOD) {
-  const today = new Date();
-  const exp = new Date(today);
-  exp.setDate(today.getDate() + gracePeriod);
-  this.lockDate = exp;
 };
 
 // register the schema within mongoose

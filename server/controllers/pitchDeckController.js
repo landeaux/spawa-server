@@ -269,7 +269,6 @@ exports.submitForReview = async (req, res, next) => {
 
     // update pitch deck
     pitchDeckDoc.setUnderReview();
-    pitchDeckDoc.setLockDate(0);
     pitchDeckDoc.decrementAttemptsLeft();
 
     // save pitch deck
@@ -302,8 +301,11 @@ exports.acceptPitchDeck = async (req, res, next) => {
 
     // update pitch deck
     pitchDeckDoc.setAccepted();
-    pitchDeckDoc.setLockDate(0);
     pitchDeckDoc.attemptsLeft = 0;
+
+    // get the active version so we can add admin comments
+    const activeVersion = pitchDeckDoc.getActiveVersion();
+    activeVersion.adminComments = req.body.adminComments || '';
 
     // save pitch deck
     const savedPitchDeckDoc = await pitchDeckDoc.save();
@@ -335,8 +337,11 @@ exports.rejectPitchDeck = async (req, res, next) => {
 
     // update pitch deck
     pitchDeckDoc.setRejected();
-    pitchDeckDoc.setLockDate(0);
     pitchDeckDoc.attemptsLeft = 0;
+
+    // get the active version so we can add admin comments
+    const activeVersion = pitchDeckDoc.getActiveVersion();
+    activeVersion.adminComments = req.body.adminComments || '';
 
     // save pitch deck
     const savedPitchDeckDoc = await pitchDeckDoc.save();
@@ -366,12 +371,6 @@ exports.reworkPitchDeck = async (req, res, next) => {
       return;
     }
 
-    // determine grace period
-    const gracePeriod = pitchDeckDoc.attemptsLeft > 0
-      ? 7 // one week
-      : 0;
-    pitchDeckDoc.setLockDate(gracePeriod);
-
     // if the user still has attempts left, set state NEEDS_REWORK
     // otherwise, set REJECT
     if (pitchDeckDoc.attemptsLeft > 0) {
@@ -379,6 +378,10 @@ exports.reworkPitchDeck = async (req, res, next) => {
     } else {
       pitchDeckDoc.setRejected();
     }
+
+    // get the active version so we can add admin comments
+    const activeVersion = pitchDeckDoc.getActiveVersion();
+    activeVersion.adminComments = req.body.adminComments || '';
 
     // save pitch deck
     const savedPitchDeckDoc = await pitchDeckDoc.save();
